@@ -1,0 +1,9 @@
+from django.contrib.auth.models import User
+from rest_framework import generics
+from rest_framework.permissions import AllowAny
+from .serializers import RSGUserSerializer
+
+class RSGUserCreate(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = RSGUserSerializer
+    permission_classes = (AllowAny,)
