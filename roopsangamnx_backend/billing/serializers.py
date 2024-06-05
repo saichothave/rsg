@@ -21,7 +21,8 @@ class BillingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Billing
-        fields = ['id', 'billing_desk', 'customer', 'date', 'total_amount', 'gst_amount', 'grand_total', 'transaction_id', 'items']
+        fields = ['id', 'billing_desk', 'customer', 'date', 'total_amount', 'gst_amount', 'transaction_id', 'items']
+        depth = 2
 
     def get_items(self, obj):
         items = obj.items.all()

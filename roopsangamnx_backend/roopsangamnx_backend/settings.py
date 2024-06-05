@@ -25,16 +25,25 @@ SECRET_KEY = 'django-insecure-h_&#q6f7@r3xmvy(#bi7@93@3sg)_6sl(dt=g8w305^boq0#7q
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
+CORS_ORIGIN_ALLOW_ALL = True
+CSRF_TRUSTED_ORIGINS = [
+     "http://localhost:5173",
+]
 
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:5173',
+]
 
 # Application definition
 
 INSTALLED_APPS = [
+    'payment_gateway',
     'rest_framework',
     'rest_framework.authtoken',
     'django.contrib.admin',
     'django.contrib.auth',
+    'corsheaders',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
@@ -52,6 +61,7 @@ INSTALLED_APPS += EXTERNAL_APPS
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -81,9 +91,12 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #     'rest_framework.permissions.IsAuthenticated',
+    # ],
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #     'rest_framework.permissions.IsAdminUser'
+    # ],
 }
 
 
