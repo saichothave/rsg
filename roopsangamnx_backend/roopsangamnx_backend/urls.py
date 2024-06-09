@@ -16,8 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from .views import index
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('^auth/', include(("authentication.urls", "authentication"), namespace="authentication")),
+    path('auth/', include(("authentication.urls", "authentication"), namespace="authentication")),
+    path('', include(("inventory.urls", "inventory"), namespace="inventory")),
+    path('', include(("billing.urls", "billing"), namespace="billing")),
+    path('', index),
+    path('razorpay/', include("payment_gateway.urls")),
 ]
