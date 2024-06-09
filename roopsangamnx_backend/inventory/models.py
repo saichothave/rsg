@@ -29,10 +29,10 @@ class ProductSize(TimeStampedModel):
 
 class Product(TimeStampedModel):
     name = models.CharField(max_length=255)
-    brand = models.ForeignKey(Brand, related_name="models", on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='gallery/products')
-    size = models.ForeignKey(ProductSize, on_delete=models.CASCADE)
-    color = models.ForeignKey(ProductColor, on_delete=models.CASCADE)
+    brand = models.ForeignKey(Brand, related_name="models", on_delete=models.CASCADE, blank=True, null=True)
+    image = models.ImageField(upload_to='gallery/products', blank=True, null=True)
+    size = models.ForeignKey(ProductSize, on_delete=models.CASCADE, blank=True, null=True)
+    color = models.ForeignKey(ProductColor, on_delete=models.CASCADE, blank=True, null=True)
     description = models.TextField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')
     subcategory = models.ForeignKey(SubCategory, on_delete=models.SET_NULL, blank=True, null=True, related_name='products')
