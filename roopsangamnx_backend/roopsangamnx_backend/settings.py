@@ -101,7 +101,7 @@ REST_FRAMEWORK = {
 }
 
 
-WSGI_APPLICATION = 'roopsangamnx_backend.wsgi.application'
+WSGI_APPLICATION = 'roopsangamnx_backend.wsgi.app'
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
