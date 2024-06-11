@@ -23,8 +23,8 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include(("authentication.urls", "authentication"), namespace="authentication")),
-    path('', include(("inventory.urls", "inventory"), namespace="inventory")),
-    path('', include(("billing.urls", "billing"), namespace="billing")),
+    path('inventory/', include(("inventory.urls", "inventory"), namespace="inventory")),
+    path('billing/', include(("billing.urls", "billing"), namespace="billing")),
     path('', index),
     path('razorpay/', include("payment_gateway.urls")),
 ]
