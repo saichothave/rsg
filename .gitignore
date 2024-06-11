@@ -7,3 +7,15 @@ roopsangamnx_backend/inventory/
 roopsangamnx_backend/payment_gateway/
 roopsangamnx_backend/__pycache__/
 roopsangamnx_backend/roopsangamnx_backend/__pycache__
+roopsangamnx_backend/staticfiles/
+*.log
+
+*.pot
+
+*.pyc
+
+*/*/*/__pycache__/
+
+*/*/__pycache__/
+
+*/__pycache__/

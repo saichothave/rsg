@@ -17,12 +17,18 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from .views import index
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include(("authentication.urls", "authentication"), namespace="authentication")),
-    path('', include(("inventory.urls", "inventory"), namespace="inventory")),
-    path('', include(("billing.urls", "billing"), namespace="billing")),
+    path('inventory/', include(("inventory.urls", "inventory"), namespace="inventory")),
+    path('billing/', include(("billing.urls", "billing"), namespace="billing")),
     path('', index),
     path('razorpay/', include("payment_gateway.urls")),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
