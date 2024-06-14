@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-h_&#q6f7@r3xmvy(#bi7@93@3sg)_6sl(dt=g8w305^boq0#7q'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 CORS_ORIGIN_ALLOW_ALL = True
@@ -101,7 +101,7 @@ REST_FRAMEWORK = {
 }
 
 
-WSGI_APPLICATION = 'roopsangamnx_backend.wsgi.app'
+WSGI_APPLICATION = 'roopsangamnx_backend.wsgi.application'
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -117,12 +117,8 @@ print('MEDIA_ROOT', MEDIA_ROOT)
 
 DATABASES = {
     'default': {
-    'ENGINE': 'django.db.backends.postgresql',
-    'NAME': 'rs_db',
-    'USER': 'postgres',
-    'PASSWORD': 'postgres',
-    'HOST': 'localhost',
-    'PORT': '5432', 
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
