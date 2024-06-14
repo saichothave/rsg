@@ -65,8 +65,8 @@ INSTALLED_APPS += EXTERNAL_APPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -109,8 +109,8 @@ REST_FRAMEWORK = {
 WSGI_APPLICATION = 'roopsangamnx_backend.wsgi.application'
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = [os.path.join(BASE_DIR)]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # add all static files in this folder after collectstatic
+STATICFILES_DIRS = [os.path.join(BASE_DIR)] #check base directory of each app for static files
 
 # Media files
 MEDIA_URL = '/media/'
