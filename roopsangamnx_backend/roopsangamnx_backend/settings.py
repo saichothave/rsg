@@ -110,7 +110,7 @@ WSGI_APPLICATION = 'roopsangamnx_backend.wsgi.application'
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # add all static files in this folder after collectstatic
-STATICFILES_DIRS = (os.path.join(BASE_DIR, 'gallery'),) #check base directory of each app for static files
+STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),) #check base directory of each app for static files
 
 # Media files
 MEDIA_URL = '/media/'
