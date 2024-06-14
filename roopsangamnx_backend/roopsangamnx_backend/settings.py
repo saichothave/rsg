@@ -44,7 +44,6 @@ CORS_ORIGIN_WHITELIST = [
 # Application definition
 
 INSTALLED_APPS = [
-    'payment_gateway',
     'rest_framework',
     'rest_framework.authtoken',
     'django.contrib.admin',
