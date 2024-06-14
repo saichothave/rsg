@@ -26,16 +26,10 @@ urlpatterns = [
     path('', include(("inventory.urls", "inventory"), namespace="inventory")),
     path('', include(("billing.urls", "billing"), namespace="billing")),
     path('', index),
+    path('razorpay/', include("payment_gateway.urls")),
+
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-
-    urlpatterns += patterns('',
-             (r'^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT, 'show_indexes':True}),
-         )
-
-    urlpatterns += patterns('',
-            (r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT, 'show_indexes':True}),
-        )
