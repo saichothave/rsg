@@ -56,7 +56,7 @@ INSTALLED_APPS = [
 ]
 
 EXTERNAL_APPS = [
-    'payment_gateway',
+    # 'payment_gateway',
     'authentication',
     'inventory',
     'billing'
