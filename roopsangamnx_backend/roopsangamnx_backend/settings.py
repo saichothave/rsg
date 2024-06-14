@@ -34,11 +34,11 @@ DEBUG = False
 ALLOWED_HOSTS = ['*']
 CORS_ORIGIN_ALLOW_ALL = True
 CSRF_TRUSTED_ORIGINS = [
-     "*"
+     "http://localhost:5173",
 ]
 
 CORS_ORIGIN_WHITELIST = [
-    '*'
+    'http://localhost:5173',
 ]
 
 # Application definition
@@ -56,7 +56,7 @@ INSTALLED_APPS = [
 ]
 
 EXTERNAL_APPS = [
-    # 'payment_gateway',
+    'payment_gateway',
     'authentication',
     'inventory',
     'billing'
@@ -111,7 +111,7 @@ WSGI_APPLICATION = 'roopsangamnx_backend.wsgi.application'
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # add all static files in this folder after collectstatic
-STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),) #check base directory of each app for static files
+STATICFILES_DIRS = (os.path.join(BASE_DIR),) #check base directory of each app for static files
 
 # Media files
 MEDIA_URL = '/media/'
