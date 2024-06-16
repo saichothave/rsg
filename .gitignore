@@ -1,6 +1,13 @@
 *.pyc
 __pycache__/
 rsenv
-roopsangam)backend/billing/migrations/
+roopsangamnx_backend/*/migrations/
 roopsangamnx_backend/__pycache__/
-roopsangamnx_backend/roopsangamnx_backend/__pycache__
+gallery/
+.env
+*.log
+*.pot
+*.pyc
+*/*/*/__pycache__/
+*/*/__pycache__/
+*/__pycache__/
