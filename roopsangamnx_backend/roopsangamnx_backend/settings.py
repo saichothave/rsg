@@ -124,19 +124,19 @@ print('MEDIA_ROOT', MEDIA_ROOT)
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': getenv('PGDATABASE'),
-#         'USER': getenv('PGUSER'),
-#         'PASSWORD': getenv('PGPASSWORD'),
-#         'HOST': getenv('PGHOST'),
-#         'PORT': getenv('PGPORT', 5432),
-#          'OPTIONS': {
-#              'sslmode': 'require',
-#         }
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': getenv('PGDATABASE'),
+        'USER': getenv('PGUSER'),
+        'PASSWORD': getenv('PGPASSWORD'),
+        'HOST': getenv('PGHOST'),
+        'PORT': getenv('PGPORT', 5432),
+         'OPTIONS': {
+             'sslmode': 'require',
+        }
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
