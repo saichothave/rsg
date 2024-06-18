@@ -2,8 +2,8 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from inventory.filters import CategoryFilter, SubCategoryFilter, ProductFilter
-from .models import Category, Product, SubCategory
-from .serializers import CategorySerializer, ProductSerializer, SubcategorySerializer
+from .models import Category, Product, SubCategory, Brand, ProductColor, ProductSize
+from .serializers import *
 from django_filters.rest_framework import DjangoFilterBackend
 
 
@@ -25,6 +25,8 @@ class SubcategoryViewSet(viewsets.ModelViewSet):
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = ProductFilter
+
+   
