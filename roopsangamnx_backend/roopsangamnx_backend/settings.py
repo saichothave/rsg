@@ -116,6 +116,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # add all static files in this folder after collectstatic
 STATICFILES_DIRS = (os.path.join(BASE_DIR),) #check base directory of each app for static files
 
+
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR)
@@ -123,6 +124,15 @@ print('MEDIA_ROOT', MEDIA_ROOT)
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
+# Replace the DATABASES section of your settings.py with this
 
 DATABASES = {
     'default': {
