@@ -1,9 +1,15 @@
 *.pyc
 __pycache__/
 rsenv
-roopsangamnx_backend/*/migrations/
+roopsangamnx_backend/authentication/migrations/*
+roopsangamnx_backend/inventory/migrations/*
+roopsangamnx_backend/billing/migrations/*
+roopsangamnx_backend/db.sqlite3
+
 roopsangamnx_backend/__pycache__/
 gallery/
+roopsangamnx_backend/__pycache__/
+rsenv
 .env
 *.log
 *.pot
