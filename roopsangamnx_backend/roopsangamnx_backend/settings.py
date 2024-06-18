@@ -29,7 +29,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-h_&#q6f7@r3xmvy(#bi7@93@3sg)_6sl(dt=g8w305^boq0#7q'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = getenv('DEBUG', True)
 
 ALLOWED_HOSTS = ['*']
 CORS_ORIGIN_ALLOW_ALL = True
@@ -57,7 +57,7 @@ INSTALLED_APPS = [
 ]
 
 EXTERNAL_APPS = [
-    'payment_gateway',
+    # 'payment_gateway',
     'authentication',
     'inventory',
     'billing'
