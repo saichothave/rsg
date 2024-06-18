@@ -1,6 +1,5 @@
 import json
 
-import environ
 import razorpay
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -9,11 +8,10 @@ from billing.models import Billing, BillingDesk, Customer
 from billing.serializers import BillingSerializer
 
 
-env = environ.Env()
+from os import getenv
+from dotenv import load_dotenv
 
-# you have to create .env file in same folder where you are using environ.Env()
-# reading .env file which located in api folder
-environ.Env.read_env()
+load_dotenv()
 
 
 @api_view(['POST'])
@@ -23,7 +21,7 @@ def start_payment(request):
     name = request.data['name']
 
     # setup razorpay client this is the client to whome user is paying money that's you
-    client = razorpay.Client(auth=(env('PUBLIC_KEY'), env('SECRET_KEY')))
+    client = razorpay.Client(auth=(getenv('PUBLIC_KEY'), getenv('SECRET_KEY')))
 
     # create razorpay order
     # the amount will come in 'paise' that means if we pass 50 amount will become
@@ -97,7 +95,7 @@ def handle_payment_success(request):
         'razorpay_signature': raz_signature
     }
 
-    client = razorpay.Client(auth=(env('PUBLIC_KEY'), env('SECRET_KEY')))
+    client = razorpay.Client(auth=(getenv('PUBLIC_KEY'), getenv('SECRET_KEY')))
 
     # checking if the transaction is valid or not by passing above data dictionary in 
     # razorpay client if it is "valid" then check will return None
