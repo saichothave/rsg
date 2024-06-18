@@ -20,6 +20,10 @@ class RSGUserCreate(generics.CreateAPIView):
     serializer_class = RSGUserSerializer
     permission_classes = (AllowAny,)
 
+    def perform_create(self, serializer):
+        user = serializer.save()
+        RSGUser.objects.create(user=user)
+
 
 class UnauthorizedException(APIException):
     status_code = status.HTTP_401_UNAUTHORIZED
@@ -33,7 +37,11 @@ class LoginView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = LoginSerializer
 
+    
+
+
     def post(self, request, *args, **kwargs):
+        print('request')
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             username = serializer.validated_data['username']
