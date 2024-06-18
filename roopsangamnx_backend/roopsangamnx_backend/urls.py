@@ -26,7 +26,7 @@ urlpatterns = [
     path('inventory/', include(("inventory.urls", "inventory"), namespace="inventory")),
     path('billing/', include(("billing.urls", "billing"), namespace="billing")),
     path('', index),
-    path('razorpay/', include("payment_gateway.urls")),
+    # path('razorpay/', include("payment_gateway.urls")),
 
 ]
 
