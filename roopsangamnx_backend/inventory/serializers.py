@@ -6,28 +6,29 @@ from .models import Category, Product, SubCategory, Brand, ProductColor, Product
 class SubcategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = SubCategory
-        fields = ['name']
+        fields = "__all__"
 
 class CategorySerializer(serializers.ModelSerializer):
     subcategories = SubcategorySerializer(many=True, read_only=True)
     class Meta:
         model = Category
-        fields = ['name', 'subcategories']
+        fields = "__all__"
+
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:
         model = Brand
-        fields = ['name']
+        fields = "__all__"
 
 
 class ProductColorSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductColor
-        fields = ['color', 'inventory']
+        fields = "__all__"
 
 class ProductSizeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductSize
-        fields = ['size', 'inventory']
+        fields = "__all__"
 
 class ProductSerializer(serializers.ModelSerializer):
     category = CategorySerializer()
@@ -90,3 +91,12 @@ class ProductWriteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return Product.objects.create(**validated_data) 
+    
+
+class FilterSerializer(serializers.Serializer):
+    categories = CategorySerializer(many=True)
+    subcategories = SubcategorySerializer(many=True)
+    brands = BrandSerializer(many=True)
+    product_colors = ProductColorSerializer(many=True)
+    product_sizes = ProductSizeSerializer(many=True)
+    

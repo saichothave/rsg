@@ -5,6 +5,7 @@ from inventory.filters import CategoryFilter, SubCategoryFilter, ProductFilter
 from .models import Category, Product, SubCategory, Brand, ProductColor, ProductSize
 from .serializers import *
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.views import APIView
 
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.response import Response
@@ -118,4 +119,21 @@ class ProductViewSet(viewsets.ModelViewSet):
         color, created = ProductColor.objects.get_or_create(color=color_name)
         return color
 
+class FilterView(APIView):
+    def get(self, request, *args, **kwargs):
+        categories = Category.objects.all()
+        subcategories = SubCategory.objects.all()
+        brands = Brand.objects.all()
+        product_colors = ProductColor.objects.all()
+        product_sizes = ProductSize.objects.all()
+        
+        data = {
+            'categories': CategorySerializer(categories, many=True).data,
+            'subcategories': SubcategorySerializer(subcategories, many=True).data,
+            'brands': BrandSerializer(brands, many=True).data,
+            'product_colors': ProductColorSerializer(product_colors, many=True).data,
+            'product_sizes': ProductSizeSerializer(product_sizes, many=True).data,
+        }
+        
+        return Response(data)
    
