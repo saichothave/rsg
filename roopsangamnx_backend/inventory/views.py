@@ -44,7 +44,10 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         data = request.data
+        _mutable = data._mutable
 
+        # set to mutable
+        data._mutable = True
         # Ensure nested JSON fields are parsed correctly
         for field in ['brand', 'category', 'subcategory', 'size', 'color']:
             if field in data and isinstance(data[field], str):
@@ -71,6 +74,8 @@ class ProductViewSet(viewsets.ModelViewSet):
             data['color'] = color.pk
 
         # Validate and save the serializer
+        # set mutable flag back
+        data._mutable = _mutable
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
