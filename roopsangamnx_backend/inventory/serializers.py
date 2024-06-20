@@ -91,6 +91,19 @@ class ProductWriteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return Product.objects.create(**validated_data) 
+
+    def update(self, instance, validated_data):
+        instance.category = validated_data.get('category', instance.category)
+        instance.subcategory = validated_data.get('subcategory', instance.subcategory)
+        instance.brand = validated_data.get('brand', instance.brand)
+        instance.size = validated_data.get('size', instance.size)
+        instance.color = validated_data.get('color', instance.color)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
     
 
 class FilterSerializer(serializers.Serializer):

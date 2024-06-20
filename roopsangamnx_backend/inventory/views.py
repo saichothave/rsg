@@ -84,6 +84,49 @@ class ProductViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+    def update(self, request, *args, **kwargs):
+        data = request.data
+        _mutable = data._mutable
+
+        # set to mutable
+        data._mutable = True
+        # Ensure nested JSON fields are parsed correctly
+        for field in ['brand', 'category', 'subcategory', 'size', 'color']:
+            if field in data and isinstance(data[field], str):
+                try:
+                    data[field] = json.loads(data[field])
+                except json.JSONDecodeError:
+                    return Response({'error': f'Invalid JSON format for {field}'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Extract and create or retrieve related objects
+        brand = self.get_or_create_brand(data.get('brand'))
+        category = self.get_or_create_category(data.get('category'))
+        subcategory = self.get_or_create_subcategory(data.get('subcategory'), category)
+        size = self.get_or_create_product_size(data.get('size'))
+        color = self.get_or_create_product_color(data.get('color'))
+
+        # Assign the primary keys of related objects to data dictionary
+        data['brand'] = brand.pk
+        data['category'] = category.pk
+        if subcategory:
+            data['subcategory'] = subcategory.pk
+        if size:
+            data['size'] = size.pk
+        if color:
+            data['color'] = color.pk
+
+        # Validate and save the serializer
+        # set mutable flag back
+        data._mutable = _mutable
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response(serializer.data)
+
+
     def get_or_create_brand(self, brand_data):
         if not brand_data:
             return None
