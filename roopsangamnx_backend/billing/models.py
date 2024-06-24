@@ -1,5 +1,6 @@
 from django.db import models
 from inventory.models import Product
+from authentication.models import BillingDesk
 from roopsangamnx_backend.models import TimeStampedModel
 
 
@@ -12,25 +13,19 @@ class Customer(TimeStampedModel):
         return self.name
 
 
-class BillingDesk(TimeStampedModel):
-    name = models.CharField(max_length=255)
-    location = models.CharField(max_length=255)
-
-    def __str__(self):
-        return self.name
-
 
 class Billing(TimeStampedModel):
     billing_desk = models.ForeignKey(BillingDesk, on_delete=models.CASCADE, related_name='billings')
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='billings')
+    customer_details = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='billings')
     date = models.DateTimeField(auto_now_add=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     gst_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     transaction_id = models.CharField(max_length=255)
     isPaid = models.BooleanField(default=False)
+    payment_mode = models.CharField(max_length=30, default="Cash")
 
     def __str__(self):
-        return f"Billing #{self.id} - {self.customer.name}"
+        return f"Billing #{self.id} - {self.customer_details.name}"
 
 
 class BillingItem(TimeStampedModel):

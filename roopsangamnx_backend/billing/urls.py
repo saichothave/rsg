@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    CustomerViewSet, BillingDeskViewSet,
+    CustomerViewSet,
     BillingViewSet, BillingItemViewSet
 )
 
@@ -10,7 +10,6 @@ router = DefaultRouter()
 
 # Register viewsets with the router
 router.register(r'customers', CustomerViewSet, basename='customer')
-router.register(r'billing-desks', BillingDeskViewSet, basename='billing-desk')
 router.register(r'billings', BillingViewSet, basename='billing')
 router.register(r'billing-items', BillingItemViewSet, basename='billing-item')
 
