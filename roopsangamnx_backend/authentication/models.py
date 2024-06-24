@@ -30,7 +30,10 @@ class RSGUser(AbstractUser):
 class ShopOwner(models.Model):
     user = models.OneToOneField(RSGUser, on_delete=models.CASCADE, primary_key=True)
     shop_name = models.CharField(max_length=255)
-    address = models.CharField(max_length=255)
+    address_line_1 = models.CharField(max_length=255)
+    address_line_2 = models.CharField(max_length=255, null=True, blank=True)
+    city = models.CharField(max_length=255)
+    zip_code = models.CharField(max_length=255)
 
 class BillingDesk(models.Model):
     user = models.OneToOneField(RSGUser, on_delete=models.CASCADE, primary_key=True)
