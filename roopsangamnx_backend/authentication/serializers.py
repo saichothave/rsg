@@ -39,13 +39,6 @@ class BillingDeskSerializer(serializers.ModelSerializer):
         model = BillingDesk
         fields = "__all__"
 
-    def to_representation(self, instance):
-        # Accessing the request object from the context
-        assigned_shop = self.context.get('assigned_shop', None)
-        print("s",assigned_shop)
-
-        return super().to_representation(instance)
-
     def create(self, validated_data):
         print(validated_data)
         user_data = validated_data.pop('user')

@@ -29,7 +29,7 @@ class BillingViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=data)
         if serializer.is_valid():
             invoice = serializer.save()
-            image_io = generate_invoice_image(invoice)
+            image_io = generate_invoice_image(invoice, request)
             response = HttpResponse(image_io, content_type='image/png')
             response['Content-Disposition'] = f'attachment; filename="invoice_{invoice.id}.png"'
             return response
