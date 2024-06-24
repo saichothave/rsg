@@ -14,3 +14,11 @@ class IsAdminOrReadOnly(permissions.BasePermission):
 
         # Write permissions are only allowed to the admin user.
         return request.user and request.user.is_staff
+    
+class IsShopOwner(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.user_type == 'shopowner'
+
+class IsBillingDesk(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.user_type == 'billingdesk'
