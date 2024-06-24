@@ -122,6 +122,8 @@ REST_FRAMEWORK = {
 
 WSGI_APPLICATION = 'roopsangamnx_backend.wsgi.application'
 
+AUTH_USER_MODEL = 'authentication.RSGUser'
+
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # add all static files in this folder after collectstatic
 STATICFILES_DIRS = (os.path.join(BASE_DIR),) #check base directory of each app for static files

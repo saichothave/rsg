@@ -13,10 +13,15 @@ from django.contrib.auth import login, logout
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from rest_framework import status
+from rest_framework.views import APIView
 
+from rest_framework import generics, permissions
+from .serializers import ShopOwnerSerializer, BillingDeskSerializer, ScannerSerializer
+from .models import ShopOwner, BillingDesk, Scanner
+from .permissions import IsShopOwner, IsBillingDesk
 
 class RSGUserCreate(generics.CreateAPIView):
-    queryset = User.objects.all()
+    queryset = RSGUser.objects.all()
     serializer_class = RSGUserSerializer
     permission_classes = (AllowAny,)
 
@@ -52,10 +57,50 @@ class LoginView(generics.CreateAPIView):
                 try :
                     login(request, user)
                     token, created = Token.objects.get_or_create(user=user)
-                    return Response({"token": token.key, "user": user.username}, status=200)
+                    # request.session['token'] = token.key
+                    response = Response({"token": token.key, "user": user.username}, status=200)
+                    response.set_cookie('token', token.key, max_age=3600, httponly=True)
+                    return response
                 except RSGUser.DoesNotExist:
                     raise UnauthorizedException("Invalid credentials")
             else:
                 raise UnauthorizedException("Invalid credentials")
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                
+class ShopOwnerCreateView(generics.ListCreateAPIView):
+    queryset = ShopOwner.objects.all()
+    serializer_class = ShopOwnerSerializer
+    permission_classes = [permissions.IsAdminUser]
+    
+
+class BillingDeskCreateView(generics.ListCreateAPIView):
+    queryset = BillingDesk.objects.all()
+    serializer_class = BillingDeskSerializer
+    permission_classes = [permissions.IsAuthenticated, IsShopOwner]
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        data["assigned_shop"] = request.user
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def get_queryset(self):
+        print(self.request.user.pk)
+        return BillingDesk.objects.filter(assigned_shop = ShopOwner.objects.get(user=self.request.user))
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+
+class ScannerCreateView(generics.ListCreateAPIView):
+    queryset = Scanner.objects.all()
+    serializer_class = ScannerSerializer
+    permission_classes = [permissions.IsAuthenticated, IsBillingDesk, IsShopOwner]
