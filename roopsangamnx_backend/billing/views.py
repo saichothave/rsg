@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from django.db import transaction
 from rest_framework import status
 from rest_framework import generics, permissions
-from django.http import HttpResponse
+
 
 
 class CustomerViewSet(viewsets.ModelViewSet):
@@ -29,9 +29,7 @@ class BillingViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=data)
         if serializer.is_valid():
             invoice = serializer.save()
-            image_io = generate_invoice_image(invoice, request)
-            response = HttpResponse(image_io, content_type='image/png')
-            response['Content-Disposition'] = f'attachment; filename="invoice_{invoice.id}.png"'
+            response = generate_invoice_image(invoice, request)
             return response
             # return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
