@@ -48,13 +48,15 @@ def generate_invoice_image(billing, request):
     # Load font
     font_path = os.path.join(os.path.dirname(__file__), 'fonts', 'Times New Roman.ttf')
     try:
-        title_font = ImageFont.truetype(font_path, 24)
-        content_font = ImageFont.truetype(font_path, 16)
-        dash_font = ImageFont.truetype(font_path, 10)
-        table_font = ImageFont.truetype(font_path, 14)
+        title_font = ImageFont.truetype(font_path, 48)
+        content_font = ImageFont.truetype(font_path, 32)
+        dash_font = ImageFont.truetype(font_path, 20)
+        table_font = ImageFont.truetype(font_path, 22)
     except IOError:
-        title_font = ImageFont.load_default(size=30)
+        title_font = ImageFont.load_default()
         content_font = ImageFont.load_default()
+        dash_font = ImageFont.load_default()
+        table_font = ImageFont.load_default()
 
     y = 10
 
