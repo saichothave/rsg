@@ -58,7 +58,7 @@ class LoginView(generics.CreateAPIView):
                     login(request, user)
                     token, created = Token.objects.get_or_create(user=user)
                     # request.session['token'] = token.key
-                    response = Response({"token": token.key, "user": user.username}, status=200)
+                    response = Response({"token": token.key, "user": RSGUserSerializer(user).data }, status=200)
                     response.set_cookie('token', token.key, max_age=3600, httponly=True)
                     return response
                 except RSGUser.DoesNotExist:

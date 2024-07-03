@@ -67,8 +67,10 @@ def generate_invoice_image(billing, request):
         dash_font = ImageFont.truetype(font_path, 20)
         table_font = ImageFont.truetype(font_path, 22)
     except IOError:
-        title_font = ImageFont.load_default(size=30)
+        title_font = ImageFont.load_default()
         content_font = ImageFont.load_default()
+        dash_font = ImageFont.load_default()
+        table_font = ImageFont.load_default()
 
     y = 10
 
