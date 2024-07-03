@@ -38,7 +38,16 @@ class BillingSerializer(serializers.ModelSerializer):
         customer_data = validated_data.pop('customer_details')
 
         # Create or get the customer instance
-        customer_instance, created = Customer.objects.get_or_create(email=customer_data['email'], defaults=customer_data)
+        customer_instance = None
+        if(customer_data['email']):
+            customer_instance, created = Customer.objects.get_or_create(email=customer_data['email'], defaults=customer_data)
+        else:
+            customer_instance = Customer()
+            customer_instance.name = customer_data['name']
+            customer_instance.email = customer_data['email']
+            customer_instance.phone_number = customer_data['phone_number']
+            customer_instance.save()
+        print(customer_instance)
 
         billing = Billing.objects.create(customer_details=customer_instance,**validated_data)
 
