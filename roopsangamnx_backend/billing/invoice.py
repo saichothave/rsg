@@ -3,8 +3,17 @@ import io
 import os
 from escpos.printer import Usb
 from django.http import HttpResponse
+from django.conf import settings
 
 from authentication.models import BillingDesk
+
+
+def add_newline_every_n_chars(text, n=15):
+    # Split the text into chunks of size n
+    chunks = [text[i:i+n] for i in range(0, len(text), n)]
+    # Join the chunks with newline characters
+    return '\n'.join(chunks)
+
 
 def printBill(billing, request):
     p = Usb()
@@ -46,27 +55,30 @@ def printBill(billing, request):
 
 
 def printImage(image):
-    p = Usb()
+    p = Usb(dVendor=0x0483, idProduct=0x5743)
     p.image(image,impl="bitImageRaster")
     p.cut("FULL")
 
     
 def generate_invoice_image(billing, request):
     # Create an image with white background
-    width, height = 600, 650  # Example dimensions
+    width, height = 600, 900  # Example dimensions
     DASH_NUM = 200
     bottom_margin = 80
     image = Image.new('RGB', (width, height), 'white')
     draw = ImageDraw.Draw(image)
 
     # Load font
-    font_path = os.path.join(os.path.dirname(__file__), 'fonts', 'Times New Roman.ttf')
+    base_dir = settings.BASE_DIR
+    font_path = os.path.join(base_dir, 'fonts', 'times.ttf')
+    print('font path', font_path)
     try:
         title_font = ImageFont.truetype(font_path, 48)
         content_font = ImageFont.truetype(font_path, 32)
         dash_font = ImageFont.truetype(font_path, 20)
         table_font = ImageFont.truetype(font_path, 22)
     except IOError:
+        print('ioerror')
         title_font = ImageFont.load_default()
         content_font = ImageFont.load_default()
         dash_font = ImageFont.load_default()
@@ -137,8 +149,12 @@ def generate_invoice_image(billing, request):
 
     # Draw the items
     for item in billing.items.all():
+        product_detail = str(item.product.brand) + "-" + str(item.product.name)
+        formatted_product_detail = add_newline_every_n_chars(product_detail, 15)
+       
         row = [
-            f"{item.product.brand} - {item.product.name}",
+            # f"{item.product.brand} - {item.product.name}",
+            formatted_product_detail,
             str(item.quantity),
             str(item.discount),
             f"{item.unit_price:.2f}",
@@ -147,6 +163,8 @@ def generate_invoice_image(billing, request):
         for i, text in enumerate(row):
             draw.text((x + sum(column_widths[:i]), y), text, fill='black', font=table_font)
         y += table_font.size + 5  # Move to the next lin
+        lines = (len(product_detail) // 15)
+        y= y +(lines*content_font.size) + 5
 
         if y+bottom_margin >= height:
             new_height = y + table_font.size + bottom_margin  # Add some padding
