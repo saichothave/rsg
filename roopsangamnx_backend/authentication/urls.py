@@ -1,6 +1,6 @@
 # myapp/urls.py
 from django.urls import path
-from .views import BillingDeskCreateView, RSGUserCreate, LoginView, ScannerCreateView, ShopOwnerCreateView
+from .views import BillingDeskCreateView, RSGUserCreate, LoginView, ScannerCreateView, ShopOwnerCreateView, LogoutView
 from rest_framework.authtoken.views import obtain_auth_token
 
 
@@ -11,4 +11,5 @@ urlpatterns = [
     path('shopowner/', ShopOwnerCreateView.as_view(), name='hopowner'),
     path('billingdesk/', BillingDeskCreateView.as_view(), name='billingdesk'),
     path('scanner/', ScannerCreateView.as_view(), name='scanner'),
+    path('logout/', LogoutView.as_view(), name='logout')
 ]

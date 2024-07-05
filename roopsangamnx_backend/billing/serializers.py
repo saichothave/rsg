@@ -39,8 +39,9 @@ class BillingSerializer(serializers.ModelSerializer):
 
         # Create or get the customer instance
         customer_instance = None
-        if(customer_data['email']):
-            customer_instance, created = Customer.objects.get_or_create(email=customer_data['email'], defaults=customer_data)
+
+        if(customer_data['phone_number']):
+            customer_instance, created = Customer.objects.get_or_create(phone_number=customer_data['phone_number'], defaults=customer_data)
         else:
             customer_instance = Customer()
             customer_instance.name = customer_data['name']
@@ -58,3 +59,8 @@ class BillingSerializer(serializers.ModelSerializer):
 
             BillingItem.objects.create(billing=billing, **item_data)
         return billing
+    
+class BDDashBoardSerializer(serializers.Serializer):
+    payment_mode = serializers.CharField()
+    total_amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+    

@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
+from roopsangamnx_backend import settings
 from .serializers import RSGUserSerializer, LoginSerializer
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -104,3 +105,20 @@ class ScannerCreateView(generics.ListCreateAPIView):
     queryset = Scanner.objects.all()
     serializer_class = ScannerSerializer
     permission_classes = [permissions.IsAuthenticated, IsBillingDesk, IsShopOwner]
+
+
+class LogoutView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        # Handle token-based logout
+        if 'rest_framework.authtoken' in settings.INSTALLED_APPS:
+            try:
+                token = Token.objects.get(user=request.user)
+                token.delete()
+            except Token.DoesNotExist:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        # Handle session-based logout
+        logout(request)
+        return Response(status=status.HTTP_200_OK)
