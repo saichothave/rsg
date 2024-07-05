@@ -1,8 +1,10 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
+    BDDashBoardView,
     CustomerViewSet,
-    BillingViewSet, BillingItemViewSet
+    BillingViewSet, BillingItemViewSet,
+    GetCustomerByPhoneNumber
 )
 
 # Create a router object
@@ -16,4 +18,8 @@ router.register(r'billing-items', BillingItemViewSet, basename='billing-item')
 # Define the URL patterns
 urlpatterns = [
     path('', include(router.urls)),
+    path('todays-total-by-payment-mode/', BDDashBoardView.as_view(), name='todays-total-by-payment-mode'),
+    path('customer-by-phone/<str:phone_number>/', GetCustomerByPhoneNumber.as_view(), name='customer-by-phone'),
+
+
 ]
