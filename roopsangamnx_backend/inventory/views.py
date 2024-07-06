@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
-from inventory.filters import CategoryFilter, SubCategoryFilter, ProductFilter
+from inventory.filters import CategoryFilter, SubCategoryFilter, ProductFilter, SectionFilter
 from .models import Category, Product, SubCategory, Brand, ProductColor, ProductSize
 from .serializers import *
 from django_filters.rest_framework import DjangoFilterBackend
@@ -13,6 +13,12 @@ from rest_framework import status
 import json
 
 
+class SectionViewSet(viewsets.ModelViewSet):
+    queryset = Section.objects.all()
+    serializer_class = SectionSerializer
+    permission_classes = [IsAuthenticated] 
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = SectionFilter
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -49,7 +55,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         # set to mutable
         data._mutable = True
         # Ensure nested JSON fields are parsed correctly
-        for field in ['brand', 'category', 'subcategory', 'size', 'color']:
+        for field in ['brand', 'section', 'category', 'subcategory', 'size', 'color']:
             if field in data and isinstance(data[field], str):
                 try:
                     data[field] = json.loads(data[field])
@@ -58,14 +64,17 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         # Extract and create or retrieve related objects
         brand = self.get_or_create_brand(data.get('brand'))
-        category = self.get_or_create_category(data.get('category'))
+        section = self.get_or_create_section(data.get('section'))
+        category = self.get_or_create_category(data.get('category'), section)
         subcategory = self.get_or_create_subcategory(data.get('subcategory'), category)
         size = self.get_or_create_product_size(data.get('size'))
         color = self.get_or_create_product_color(data.get('color'))
 
         # Assign the primary keys of related objects to data dictionary
         data['brand'] = brand.pk
+        data['section'] = section.pk
         data['category'] = category.pk
+
         if subcategory:
             data['subcategory'] = subcategory.pk
         if size:
@@ -91,7 +100,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         # set to mutable
         data._mutable = True
         # Ensure nested JSON fields are parsed correctly
-        for field in ['brand', 'category', 'subcategory', 'size', 'color']:
+        for field in ['brand', 'section', 'category', 'subcategory', 'size', 'color']:
             if field in data and isinstance(data[field], str):
                 try:
                     data[field] = json.loads(data[field])
@@ -100,14 +109,17 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         # Extract and create or retrieve related objects
         brand = self.get_or_create_brand(data.get('brand'))
-        category = self.get_or_create_category(data.get('category'))
+        section = self.get_or_create_section(data.get('section'))
+        category = self.get_or_create_category(data.get('category'), section)
         subcategory = self.get_or_create_subcategory(data.get('subcategory'), category)
         size = self.get_or_create_product_size(data.get('size'))
         color = self.get_or_create_product_color(data.get('color'))
 
         # Assign the primary keys of related objects to data dictionary
         data['brand'] = brand.pk
+        data['section'] = section.pk
         data['category'] = category.pk
+        
         if subcategory:
             data['subcategory'] = subcategory.pk
         if size:
@@ -134,13 +146,21 @@ class ProductViewSet(viewsets.ModelViewSet):
         brand_name = brand_data.get('name')
         brand, created = Brand.objects.get_or_create(name=brand_name)
         return brand
+    
+    def get_or_create_section(self, section_data):
+        if not section_data:
+            return None
 
-    def get_or_create_category(self, category_data):
+        section_name = section_data.get('name')
+        section, created = Section.objects.get_or_create(name=section_name)
+        return section
+
+    def get_or_create_category(self, category_data, section):
         if not category_data:
             return None
 
         category_name = category_data.get('name')
-        category, created = Category.objects.get_or_create(name=category_name)
+        category, created = Category.objects.get_or_create(name=category_name, section=section)
         return category
 
     def get_or_create_subcategory(self, subcategory_data, category):
@@ -169,6 +189,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 class FilterView(APIView):
     def get(self, request, *args, **kwargs):
+        sections = Section.objects.all()
         categories = Category.objects.all()
         subcategories = SubCategory.objects.all()
         brands = Brand.objects.all()
@@ -176,6 +197,7 @@ class FilterView(APIView):
         product_sizes = ProductSize.objects.all()
         
         data = {
+            'sections': SectionSerializer(sections, many=True).data,
             'categories': CategorySerializer(categories, many=True).data,
             'subcategories': SubcategorySerializer(subcategories, many=True).data,
             'brands': BrandSerializer(brands, many=True).data,

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Product, SubCategory, Brand, ProductColor, ProductSize
+from .models import Category, Product, Section, SubCategory, Brand, ProductColor, ProductSize
 
 
 
@@ -8,10 +8,18 @@ class SubcategorySerializer(serializers.ModelSerializer):
         model = SubCategory
         fields = "__all__"
 
+
 class CategorySerializer(serializers.ModelSerializer):
     subcategories = SubcategorySerializer(many=True, read_only=True)
     class Meta:
         model = Category
+        fields = "__all__"
+
+class SectionSerializer(serializers.ModelSerializer):
+    category = CategorySerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Section
         fields = "__all__"
 
 class BrandSerializer(serializers.ModelSerializer):
@@ -31,6 +39,7 @@ class ProductSizeSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class ProductSerializer(serializers.ModelSerializer):
+    section = SectionSerializer()
     category = CategorySerializer()
     subcategory = SubcategorySerializer()
     brand = BrandSerializer()
@@ -80,6 +89,7 @@ class ProductSerializer(serializers.ModelSerializer):
     
 
 class ProductWriteSerializer(serializers.ModelSerializer):
+    section = serializers.PrimaryKeyRelatedField(queryset=Section.objects.all())
     category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
     subcategory = serializers.PrimaryKeyRelatedField(queryset=SubCategory.objects.all(), required=False, allow_null=True)
     brand = serializers.PrimaryKeyRelatedField(queryset=Brand.objects.all())
@@ -93,6 +103,7 @@ class ProductWriteSerializer(serializers.ModelSerializer):
         return Product.objects.create(**validated_data) 
 
     def update(self, instance, validated_data):
+        instance.section = validated_data.get('section', instance.section)
         instance.category = validated_data.get('category', instance.category)
         instance.subcategory = validated_data.get('subcategory', instance.subcategory)
         instance.brand = validated_data.get('brand', instance.brand)
@@ -107,6 +118,7 @@ class ProductWriteSerializer(serializers.ModelSerializer):
     
 
 class FilterSerializer(serializers.Serializer):
+    section = SectionSerializer(many=True)
     categories = CategorySerializer(many=True)
     subcategories = SubcategorySerializer(many=True)
     brands = BrandSerializer(many=True)

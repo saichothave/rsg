@@ -34,11 +34,13 @@ DEBUG = getenv('DEBUG', True)
 ALLOWED_HOSTS = ['*']
 CORS_ORIGIN_ALLOW_ALL = True
 CSRF_TRUSTED_ORIGINS = [
-     "http://localhost:5173",
+     'http://localhost:5173',
+    'http://192.169.1.9:5173'
 ]
 
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:5173',
+    'http://192.169.1.9:5173'
 ]
 
 # Application definition
@@ -139,16 +141,14 @@ print('MEDIA_ROOT', MEDIA_ROOT)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': getenv('PGDATABASE'),
-        'USER': getenv('PGUSER'),
-        'PASSWORD': getenv('PGPASSWORD'),
-        'HOST': getenv('PGHOST'),
-        'PORT': getenv('PGPORT', 5432),
-         'OPTIONS': {
-             'sslmode': 'require',
-        }
+        'NAME': 'roopsangam_db',
+        'USER': 'sai',
+        'PASSWORD': 'sai',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

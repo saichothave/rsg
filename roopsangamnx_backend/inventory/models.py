@@ -4,7 +4,7 @@ from roopsangamnx_backend.models import TimeStampedModel
 
 
 class Section(TimeStampedModel):
-    name = models.CharField(max_length=255, default="General")
+    name = models.CharField(max_length=255, default="General", null=True, blank=True)
 
     def save(self, *args, **kwargs):
         self.name = self.name.title()
@@ -16,7 +16,7 @@ class Section(TimeStampedModel):
 
 class Category(TimeStampedModel):
     name = models.CharField(max_length=255, default="No category")
-    section = models.ForeignKey(Section, related_name="categories", on_delete=models.CASCADE)
+    section = models.ForeignKey(Section, related_name="categories", on_delete=models.CASCADE, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         self.name = self.name.title()
@@ -27,7 +27,7 @@ class Category(TimeStampedModel):
 
 class SubCategory(TimeStampedModel):
     name = models.CharField(max_length=255, default="No sub-category")
-    category = models.ForeignKey(Category, related_name='subcategories', on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, related_name='subcategories', on_delete=models.CASCADE, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         self.name = self.name.title()
@@ -54,7 +54,7 @@ class ProductColor(TimeStampedModel):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.color
+        return str(self.id) + " " + str(self.color)
 
 class ProductSize(TimeStampedModel):
     size = models.CharField(max_length=10, default="Free Size")
@@ -74,7 +74,7 @@ class Product(TimeStampedModel):
     size = models.ForeignKey(ProductSize, on_delete=models.CASCADE, blank=True, null=True)
     color = models.ForeignKey(ProductColor, on_delete=models.CASCADE, blank=True, null=True)
     description = models.TextField(null=True, blank=True)
-    section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name='products')
+    section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name='products', null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')
     subcategory = models.ForeignKey(SubCategory, on_delete=models.SET_NULL, blank=True, null=True, related_name='products')
     buying_price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -82,8 +82,11 @@ class Product(TimeStampedModel):
     applicable_gst = models.DecimalField(max_digits=4, decimal_places=2)  # Updated to max_digits=4 to accommodate 100.00%
     inventory = models.IntegerField(default=0)
     hsn_code = models.CharField(max_length=20, null=True, blank=True)
-    qr_code = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    qr_code = models.CharField(max_length=20, null=True, blank=True)
     barcode = models.CharField(max_length=100, unique=True, null=True, blank=True)
+    is_multi_pack = models.BooleanField(default=False)
+    multi_pack_quantity = models.IntegerField(default=1)
+
     
     def save(self, *args, **kwargs):
         # Capitalize the first letter of each word in the size field
@@ -92,4 +95,4 @@ class Product(TimeStampedModel):
 
 
     def __str__(self):
-        return str(self.id)
+        return str(self.section.name) + "/" +str(self.category) + "/" + str(self.subcategory)  + "/" + str(self.name)
