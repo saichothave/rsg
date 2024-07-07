@@ -93,9 +93,26 @@ class ProductViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
 
+        data._mutable = True
+
+        data['brand'] = brand
+        data['section'] = section
+        data['category'] = category
+
+        if subcategory:
+            data['subcategory'] = subcategory
+        if size:
+            data['size'] = size
+        if color:
+            data['color'] = color
+
+        # Validate and save the serializer
+        # set mutable flag back
+        data._mutable = _mutable
+
         # Return the response
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(ProductSerializer(data).data, status=status.HTTP_201_CREATED, headers=headers)
 
     def update(self, request, *args, **kwargs):
         data = request.data
@@ -147,16 +164,23 @@ class ProductViewSet(viewsets.ModelViewSet):
         if not brand_data:
             return None
 
-        brand_name = brand_data.get('name')
-        brand, created = Brand.objects.get_or_create(name__iexact=brand_name)
+        brand_name = brand_data.get('name').title()
+
+        try:
+            brand = Brand.objects.get(name__iexact=brand_name) 
+        except:
+            brand, created = Brand.objects.get_or_create(name=brand_name)
         return brand
     
     def get_or_create_section(self, section_data):
         if not section_data:
             return None
 
-        section_name = section_data.get('name')
-        section, created = Section.objects.get_or_create(name__iexact=section_name)
+        section_name = section_data.get('name').title()
+        try:
+            section = Section.objects.get(name__iexact=section_name) 
+        except:
+            section, created = Section.objects.get_or_create(name=section_name)
         return section
 
     def get_or_create_category(self, category_data, section):
@@ -164,7 +188,10 @@ class ProductViewSet(viewsets.ModelViewSet):
             return None
 
         category_name = category_data.get('name')
-        category, created = Category.objects.get_or_create(name__iexact=category_name, section=section)
+        try:
+            category = Category.objects.get(name__iexact=category_name) 
+        except:
+            category, created = Category.objects.get_or_create(name=category_name, section=section)
         return category
 
     def get_or_create_subcategory(self, subcategory_data, category):
@@ -172,7 +199,11 @@ class ProductViewSet(viewsets.ModelViewSet):
             return None
 
         subcategory_name = subcategory_data.get('name')
-        subcategory, created = SubCategory.objects.get_or_create(name__iexact=subcategory_name, category=category)
+        try:
+            subcategory = SubCategory.objects.get(name__iexact=subcategory_name) 
+        except:
+            subcategory, created = SubCategory.objects.get_or_create(name=subcategory_name, category=category)
+
         return subcategory
 
     def get_or_create_product_size(self, size_data):
@@ -180,15 +211,21 @@ class ProductViewSet(viewsets.ModelViewSet):
             return None
 
         size_name = size_data.get('size')
-        size, created = ProductSize.objects.get_or_create(size__iexact=size_name)
+        try:
+            size = ProductSize.objects.get(size__iexact=size_name)
+        except:
+            size, created = ProductSize.objects.get_or_create(size=size_name)
         return size
 
     def get_or_create_product_color(self, color_data):
         if not color_data:
             return None
 
-        color_name = color_data.get('color')
-        color, created = ProductColor.objects.get_or_create(color__iexact=color_name)
+        color_name = color_data.get('color').title()
+        try:
+            color = ProductColor.objects.get(color__iexact=color_name)
+        except:
+            color, created = ProductColor.objects.get_or_create(color=color_name)
         return color
 
 class FilterView(APIView):

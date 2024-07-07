@@ -19,7 +19,6 @@ class Category(TimeStampedModel):
     section = models.ForeignKey(Section, related_name="categories", on_delete=models.CASCADE, null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        self.name = self.name.title()
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -30,7 +29,6 @@ class SubCategory(TimeStampedModel):
     category = models.ForeignKey(Category, related_name='subcategories', on_delete=models.CASCADE, null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        self.name = self.name.title()
         super().save(*args, **kwargs)
 
     def __str__(self):
