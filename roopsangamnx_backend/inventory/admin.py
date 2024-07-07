@@ -17,7 +17,6 @@ class ProductAdmin(admin.ModelAdmin):
     )
     search_fields = ('name', 'brand__name', 'category__name', 'subcategory__name', 'barcode', 'color__color')
     list_filter = ('brand', 'category', 'subcategory', 'color', 'size', 'section')
-    ordering = ('name',)
 
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Category, CategoryAdmin)

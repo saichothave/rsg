@@ -43,6 +43,10 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     parser_classes = (JSONParser, MultiPartParser, FormParser)
 
+    def get_queryset(self):
+        products = Product.objects.all().order_by('-updated_at')
+        return products
+
     def get_serializer_class(self):
         if self.action == 'create' or self.action == 'update':
             return ProductWriteSerializer  # Use WriteSerializer for POST requests
@@ -144,7 +148,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             return None
 
         brand_name = brand_data.get('name')
-        brand, created = Brand.objects.get_or_create(name=brand_name)
+        brand, created = Brand.objects.get_or_create(name__iexact=brand_name)
         return brand
     
     def get_or_create_section(self, section_data):
@@ -152,7 +156,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             return None
 
         section_name = section_data.get('name')
-        section, created = Section.objects.get_or_create(name=section_name)
+        section, created = Section.objects.get_or_create(name__iexact=section_name)
         return section
 
     def get_or_create_category(self, category_data, section):
@@ -160,7 +164,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             return None
 
         category_name = category_data.get('name')
-        category, created = Category.objects.get_or_create(name=category_name, section=section)
+        category, created = Category.objects.get_or_create(name__iexact=category_name, section=section)
         return category
 
     def get_or_create_subcategory(self, subcategory_data, category):
@@ -168,7 +172,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             return None
 
         subcategory_name = subcategory_data.get('name')
-        subcategory, created = SubCategory.objects.get_or_create(name=subcategory_name, category=category)
+        subcategory, created = SubCategory.objects.get_or_create(name__iexact=subcategory_name, category=category)
         return subcategory
 
     def get_or_create_product_size(self, size_data):
@@ -176,7 +180,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             return None
 
         size_name = size_data.get('size')
-        size, created = ProductSize.objects.get_or_create(size=size_name)
+        size, created = ProductSize.objects.get_or_create(size__iexact=size_name)
         return size
 
     def get_or_create_product_color(self, color_data):
@@ -184,7 +188,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             return None
 
         color_name = color_data.get('color')
-        color, created = ProductColor.objects.get_or_create(color=color_name)
+        color, created = ProductColor.objects.get_or_create(color__iexact=color_name)
         return color
 
 class FilterView(APIView):

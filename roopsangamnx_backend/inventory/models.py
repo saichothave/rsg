@@ -94,5 +94,6 @@ class Product(TimeStampedModel):
         super().save(*args, **kwargs)
 
 
+
     def __str__(self):
         return str(self.section.name) + "/" +str(self.category) + "/" + str(self.subcategory)  + "/" + str(self.name)

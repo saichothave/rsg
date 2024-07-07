@@ -3,7 +3,7 @@ from rest_framework import viewsets
 from authentication.permissions import IsShopOwner, IsBillingDesk
 from .invoice import generate_invoice_image
 from .models import Customer, BillingDesk, Billing, BillingItem
-from .serializers import BDDashBoardSerializer, CustomerSerializer, BillingDeskSerializer, BillingSerializer, BillingItemSerializer
+from .serializers import BDDashBoardSerializer, BillingListSerializer, CustomerSerializer, BillingDeskSerializer, BillingSerializer, BillingItemSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import transaction
@@ -23,6 +23,15 @@ class BillingViewSet(viewsets.ModelViewSet):
     queryset = Billing.objects.all()
     serializer_class = BillingSerializer
     permission_classes = [permissions.IsAuthenticated, IsBillingDesk]
+
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return BillingListSerializer
+        return BillingSerializer
+    
+    def get_queryset(self):
+        return self.queryset.select_related('customer_details')
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):

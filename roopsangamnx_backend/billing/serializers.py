@@ -1,6 +1,8 @@
 from django.db import transaction
+from django.http import JsonResponse
 from rest_framework import serializers
 from authentication.serializers import BillingDeskSerializer
+from billing.methods import reduce_product_quantity
 from inventory.models import Product
 from .models import Customer, BillingDesk, Billing, BillingItem
 from inventory.serializers import ProductSerializer
@@ -54,9 +56,13 @@ class BillingSerializer(serializers.ModelSerializer):
 
         for item_data in items_data:
             product_id = item_data.get('product').id
-            if not Product.objects.filter(id=product_id).exists():
+            print('item data', item_data)
+            product = Product.objects.get(id=product_id)
+            print('product', product)
+            print('inventory',product.inventory)
+            if not product:
                 raise serializers.ValidationError({'product': f'Product with id {product_id} does not exist.'})
-
+            reduce_product_quantity(product, item_data.get('quantity'))
             BillingItem.objects.create(billing=billing, **item_data)
         return billing
     
@@ -64,3 +70,10 @@ class BDDashBoardSerializer(serializers.Serializer):
     payment_mode = serializers.CharField()
     total_amount = serializers.DecimalField(max_digits=10, decimal_places=2)
     
+
+class BillingListSerializer(serializers.ModelSerializer):
+    customer_details = CustomerSerializer()
+
+    class Meta:
+        model = Billing
+        fields = ['id', 'customer_details', 'date', 'total_amount', 'isPaid']
