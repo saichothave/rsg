@@ -2,8 +2,9 @@ from PIL import Image, ImageDraw, ImageFont
 import io
 import os
 from escpos.printer import Usb
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.conf import settings
+import base64
 
 from authentication.models import BillingDesk
 
@@ -189,14 +190,33 @@ def generate_invoice_image(billing, request):
     image.save(image_io, 'PNG')
     image_io.seek(0)
 
-    response = HttpResponse(image_io, content_type='image/png')
+    image_base64 = base64.b64encode(image_io.getvalue()).decode('utf-8')
+
+    # response = HttpResponse(image_io, content_type='image/png')
+
+    response_data = None
     try:
         printImage(image)
         # printBill(billing,request)
-        response['X-PrintStatus'] = 200
+        response_data = {
+            'image': image_base64,
+            'metadata': {
+                'PrintStatus': 200,
+                'printMsg' : "Bill generated and Printed successfully."
+            }
+        }
     except Exception as e:
-        response['X-PrintStatus'] = repr(e)
+        response_data = {
+            'image': image_base64,
+            'metadata': {
+                'PrintStatus': 500,
+                'printMsg' : "Bill generated and but not able to print.\n ERROR :: " + repr(e)
+            }
+        }
     
-    response['Content-Disposition'] = f'attachment; filename="invoice_{billing.id}.png"'
-    response['X-BillStatus'] = 200
+    # response['Content-Disposition'] = f'attachment; filename="invoice_{billing.id}.png"'
+    # response['X-BillStatus'] = 200
+
+    response = JsonResponse(response_data)
+
     return response
