@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from django.conf import settings
 
 from authentication.models import BillingDesk
+from billing.printer import p
 
 
 def add_newline_every_n_chars(text, n=15):
@@ -16,7 +17,7 @@ def add_newline_every_n_chars(text, n=15):
 
 
 def printBill(billing, request):
-    p = Usb()
+    # p = Usb()
     if request.user.user_type == "billingdesk":
         shop = BillingDesk.objects.filter(user_id=request.data['billing_desk_id'])[0].assigned_shop
         
@@ -55,7 +56,7 @@ def printBill(billing, request):
 
 
 def printImage(image):
-    p = Usb(dVendor=0x0483, idProduct=0x5743)
+    # p = Usb(dVendor=0x0483, idProduct=0x5743)
     p.image(image,impl="bitImageRaster")
     p.cut("FULL")
 
@@ -71,6 +72,7 @@ def generate_invoice_image(billing, request):
     # Load font
     base_dir = settings.BASE_DIR
     font_path = os.path.join(base_dir, 'fonts', 'times.ttf')
+    emoji_font = os.path.join(base_dir, 'fonts', 'DejaVuSans.ttf')
     print('font path', font_path)
     try:
         title_font = ImageFont.truetype(font_path, 48)
@@ -97,6 +99,8 @@ def generate_invoice_image(billing, request):
         shop = BillingDesk.objects.filter(user_id=request.data['billing_desk_id'])[0].assigned_shop
         
         centerText(shop.shop_name,title_font)
+        y += title_font.size + 10
+        centerText("RoopsangamNX",content_font)
         y += title_font.size + 10
         centerText(shop.address_line_1,content_font)
         y += content_font.size + 5
@@ -182,6 +186,18 @@ def generate_invoice_image(billing, request):
 
     draw.text((10, y), f"Total Amount: {billing.total_amount}", fill='black', font=content_font)
     y += content_font.size + 8
+
+    centerText("-"*DASH_NUM,dash_font)
+
+    y += content_font.size + 8
+    text = "Thank You Visit Again!!"
+
+    centerText(text, font=content_font)
+
+
+    y += content_font.size + 4
+    
+
 
 
     # Save the image to a BytesIO object

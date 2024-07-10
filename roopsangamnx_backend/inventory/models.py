@@ -4,6 +4,11 @@ from roopsangamnx_backend.models import TimeStampedModel
 
 
 class Section(TimeStampedModel):
+
+    class Meta:
+        verbose_name = "Section"
+        verbose_name_plural = "Sections"
+        
     name = models.CharField(max_length=255, default="General", null=True, blank=True)
 
     def save(self, *args, **kwargs):
@@ -15,6 +20,10 @@ class Section(TimeStampedModel):
 
 
 class Category(TimeStampedModel):
+    class Meta:
+        verbose_name = "Category"
+        verbose_name_plural = "Categories"
+
     name = models.CharField(max_length=255, default="No category")
     section = models.ForeignKey(Section, related_name="categories", on_delete=models.CASCADE, null=True, blank=True)
 
@@ -25,6 +34,10 @@ class Category(TimeStampedModel):
         return self.name
 
 class SubCategory(TimeStampedModel):
+    class Meta:
+        verbose_name = "SubCategory"
+        verbose_name_plural = "SubCategories"
+
     name = models.CharField(max_length=255, default="No sub-category")
     category = models.ForeignKey(Category, related_name='subcategories', on_delete=models.CASCADE, null=True, blank=True)
 

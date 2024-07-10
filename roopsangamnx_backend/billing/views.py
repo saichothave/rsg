@@ -44,6 +44,8 @@ class BillingViewSet(viewsets.ModelViewSet):
             response = generate_invoice_image(invoice, request)
             return response
             # return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            print("not valid", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     

@@ -34,7 +34,7 @@ class BillingItem(TimeStampedModel):
     quantity = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
-    discount = models.DecimalField(max_digits=3, decimal_places=2)
+    discount = models.DecimalField(max_digits=6, decimal_places=2)
 
 
     def __str__(self):
