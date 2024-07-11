@@ -80,7 +80,7 @@ class ProductArticle(TimeStampedModel):
     article = models.CharField(max_length=15)
 
     def __str__(self):
-        return str(self.id)
+        return self.article
 
 class Product(TimeStampedModel):
     name = models.CharField(max_length=255)
