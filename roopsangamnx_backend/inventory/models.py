@@ -80,7 +80,7 @@ class ProductArticle(TimeStampedModel):
     article = models.CharField(max_length=15)
 
     def __str__(self):
-        return self.article
+        return str(self.id)
 
 class Product(TimeStampedModel):
     name = models.CharField(max_length=255)
@@ -101,7 +101,7 @@ class Product(TimeStampedModel):
     barcode = models.CharField(max_length=100, unique=True, null=True, blank=True)
     is_multi_pack = models.BooleanField(default=False)
     multi_pack_quantity = models.IntegerField(default=1)
-    article_no = models.ForeignKey(ProductArticle, related_name='articles', unique=True, blank=True, null=True, on_delete=models.SET_NULL)
+    article_no = models.ForeignKey(ProductArticle, related_name='products', blank=True, null=True, on_delete=models.SET_NULL)
 
     
     def save(self, *args, **kwargs):
