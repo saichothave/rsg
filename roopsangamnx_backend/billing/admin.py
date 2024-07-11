@@ -5,16 +5,16 @@ from .models import Customer, Billing, BillingItem
 class BillingAdmin(admin.ModelAdmin):
     model = Billing
     list_display = [
-        'id','customer_details', 'total_amount', 'date', 'payment_mode'
+        'id','customer_details', 'total_amount', 'date', 'isPaid', 'payment_mode'
     ]
     search_fields = [ 'id','customer_details__name','total_amount', 'date']
 
 class BillingItemAdmin(admin.ModelAdmin):
     model = BillingItem
     list_display = [
-        'billing', 'product', 'unit_price', 'quantity', 'discount',  'total_price'
+        'billing', 'product', 'unit_price', 'quantity', 'discount',  'total_price', 
     ]
-    search_fields = [ 'product__name','product__barcode']
+    search_fields = [ 'id','billing__id','product__name','product__barcode']
 
 
 

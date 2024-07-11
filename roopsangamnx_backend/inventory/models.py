@@ -58,7 +58,6 @@ class Brand(TimeStampedModel):
         return self.name
 class ProductColor(TimeStampedModel):
     color = models.CharField(max_length=45, default="No Color")
-    inventory = models.IntegerField(default=0)
 
     def save(self, *args, **kwargs):
         self.color = self.color.title()
@@ -69,7 +68,6 @@ class ProductColor(TimeStampedModel):
 
 class ProductSize(TimeStampedModel):
     size = models.CharField(max_length=10, default="Free Size")
-    inventory = models.IntegerField(default=0)
 
     def save(self, *args, **kwargs):
         self.size = self.size.title()
@@ -77,16 +75,22 @@ class ProductSize(TimeStampedModel):
 
     def __str__(self):
         return self.size
+    
+class ProductArticle(TimeStampedModel):
+    article = models.CharField(max_length=15)
+
+    def __str__(self):
+        return self.article
 
 class Product(TimeStampedModel):
     name = models.CharField(max_length=255)
     brand = models.ForeignKey(Brand, related_name="models", on_delete=models.CASCADE, blank=True, null=True)
     image = models.ImageField(upload_to='gallery/products', blank=True, null=True)
-    size = models.ForeignKey(ProductSize, on_delete=models.CASCADE, blank=True, null=True)
-    color = models.ForeignKey(ProductColor, on_delete=models.CASCADE, blank=True, null=True)
+    size = models.ForeignKey(ProductSize, on_delete=models.SET_NULL, blank=True, null=True)
+    color = models.ForeignKey(ProductColor, on_delete=models.SET_NULL, blank=True, null=True)
     description = models.TextField(null=True, blank=True)
-    section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name='products', null=True, blank=True)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')
+    section = models.ForeignKey(Section, on_delete=models.SET_NULL, related_name='products', null=True, blank=True)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, related_name='products', null=True, blank=True)
     subcategory = models.ForeignKey(SubCategory, on_delete=models.SET_NULL, blank=True, null=True, related_name='products')
     buying_price = models.DecimalField(max_digits=10, decimal_places=2)
     selling_price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -97,6 +101,7 @@ class Product(TimeStampedModel):
     barcode = models.CharField(max_length=100, unique=True, null=True, blank=True)
     is_multi_pack = models.BooleanField(default=False)
     multi_pack_quantity = models.IntegerField(default=1)
+    article_no = models.ForeignKey(ProductArticle, blank=True, null=True, on_delete=models.SET_NULL)
 
     
     def save(self, *args, **kwargs):

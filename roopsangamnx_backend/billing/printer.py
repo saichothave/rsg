@@ -5,5 +5,10 @@ p = None
 def initialize_printer():
     global p
     if p is None:
-        p = Usb(0x0483, 0x5743)
-        print('printer status:', p)
+        try:
+            p = Usb(0x0483, 0x5743)
+            p.buzzer(2, 1)
+            print('printer status:', p.buzzer)
+            return p
+        except Exception as e:
+            print('exception-', e)

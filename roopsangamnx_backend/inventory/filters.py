@@ -1,5 +1,5 @@
 import django_filters
-from .models import Category, SubCategory, Product, Section
+from .models import Category, ProductArticle, SubCategory, Product, Section
 
 class SectionFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_expr='icontains')
@@ -24,16 +24,24 @@ class SubCategoryFilter(django_filters.FilterSet):
         model = SubCategory
         fields = ['name', 'category']
 
+class ProductArticleFilter(django_filters.FilterSet):
+    article = django_filters.CharFilter(lookup_expr='icontains')
+    class Meta:
+        model = ProductArticle
+        fields = ['article']
+
+
 class ProductFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_expr='icontains')
     brand = django_filters.NumberFilter(field_name='brand__id')
     section = django_filters.NumberFilter(field_name='section__id')
     category = django_filters.NumberFilter(field_name='category__id')
     subcategory = django_filters.NumberFilter(field_name='subcategory__id')
+    article = django_filters.NumberFilter(field_name='article__id')
     min_price = django_filters.NumberFilter(field_name='selling_price', lookup_expr='gte')
     max_price = django_filters.NumberFilter(field_name='selling_price', lookup_expr='lte')
 
     class Meta:
         model = Product
-        fields = ['name', 'brand', 'section', 'category', 'subcategory', 'min_price', 'max_price']
+        fields = ['name', 'brand', 'section', 'category', 'subcategory', 'article', 'min_price', 'max_price']
 

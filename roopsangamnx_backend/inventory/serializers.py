@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Product, Section, SubCategory, Brand, ProductColor, ProductSize
+from .models import Category, Product, ProductArticle, Section, SubCategory, Brand, ProductColor, ProductSize
 
 
 
@@ -38,6 +38,11 @@ class ProductSizeSerializer(serializers.ModelSerializer):
         model = ProductSize
         fields = "__all__"
 
+class ProductArticleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductArticle
+        fields = "__all__"
+
 class ProductSerializer(serializers.ModelSerializer):
     section = SectionSerializer()
     category = CategorySerializer()
@@ -45,6 +50,7 @@ class ProductSerializer(serializers.ModelSerializer):
     brand = BrandSerializer()
     size = ProductSizeSerializer()
     color = ProductColorSerializer()
+    article_no = ProductArticleSerializer()
     
     class Meta:
         model = Product
@@ -94,7 +100,8 @@ class ProductWriteSerializer(serializers.ModelSerializer):
     subcategory = serializers.PrimaryKeyRelatedField(queryset=SubCategory.objects.all(), required=False, allow_null=True)
     brand = serializers.PrimaryKeyRelatedField(queryset=Brand.objects.all())
     size = serializers.PrimaryKeyRelatedField(queryset=ProductSize.objects.all(), required=False, allow_null=True)
-    color = serializers.PrimaryKeyRelatedField(queryset=ProductColor.objects.all(), required=False, allow_null=True)
+    color = serializers.PrimaryKeyRelatedField(queryset=ProductColor.objects.all())
+    article_no = serializers.PrimaryKeyRelatedField(queryset=ProductArticle.objects.all(), required=False, allow_null=True)
     class Meta:
         model = Product
         fields = '__all__'
@@ -109,6 +116,7 @@ class ProductWriteSerializer(serializers.ModelSerializer):
         instance.brand = validated_data.get('brand', instance.brand)
         instance.size = validated_data.get('size', instance.size)
         instance.color = validated_data.get('color', instance.color)
+        instance.article_no = validated_data.get('article_no', instance.article_no)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -124,4 +132,5 @@ class FilterSerializer(serializers.Serializer):
     brands = BrandSerializer(many=True)
     product_colors = ProductColorSerializer(many=True)
     product_sizes = ProductSizeSerializer(many=True)
+    product_article = ProductArticleSerializer(many=True)
     

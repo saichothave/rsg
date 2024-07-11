@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, Brand, SubCategory, ProductColor, ProductSize, Section
+from .models import Category, Product, Brand, ProductArticle, SubCategory, ProductColor, ProductSize, Section
 
 class SubCategoryInline(admin.TabularInline):
     model = SubCategory
@@ -54,6 +54,10 @@ class ProductSizeAdmin(admin.ModelAdmin):
     model = ProductSize
     search_fields, ordering = ['size'], ['size']
 
+class ProductArticleAdmin(admin.ModelAdmin):
+    model = ProductArticle
+    search_fields, ordering = ['article'], ['article']
+
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(ProductColor, ProductColorAdmin)
@@ -61,6 +65,7 @@ admin.site.register(ProductSize, ProductSizeAdmin)
 admin.site.register(Brand)
 admin.site.register(SubCategory, SubCategoryAdmin)
 admin.site.register(Section, SectionAdmin)
+admin.site.register(ProductArticle, ProductArticleAdmin)
 
 
 

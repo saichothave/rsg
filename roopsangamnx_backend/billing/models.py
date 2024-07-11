@@ -25,7 +25,7 @@ class Billing(TimeStampedModel):
     payment_mode = models.CharField(max_length=30, default="Cash")
 
     def __str__(self):
-        return f"Billing #{self.id} - {self.customer_details.name}"
+        return f"Bill #{self.id} - {self.customer_details.name}"
 
 
 class BillingItem(TimeStampedModel):

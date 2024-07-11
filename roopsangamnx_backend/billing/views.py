@@ -11,6 +11,9 @@ from rest_framework import status
 from rest_framework import generics, permissions
 
 from django.utils import timezone
+from .printer import p
+from billing import printer
+
 
 
 
@@ -58,7 +61,7 @@ class BDDashBoardView(APIView):
 
     def get(self, request, *args, **kwargs):
         today = timezone.now().date()
-        today_bills = Billing.objects.filter(date__date=today)
+        today_bills = Billing.objects.filter(date__date=today, isPaid=True)
         total_by_payment_mode = today_bills.values('payment_mode').annotate(total_amount=Sum('total_amount'))
         
         serializer = BDDashBoardSerializer(total_by_payment_mode, many=True)
@@ -73,3 +76,21 @@ class GetCustomerByPhoneNumber(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Customer.DoesNotExist:
             return Response({'error': 'Customer not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+
+class PrinterStatus(APIView):
+    def get(self, request):
+        print('printer status')
+        print('p', p.device)
+        if p.device and p.is_online:
+            p.buzzer(1)
+            return Response({'success': 'Printer is Connected'}, status=status.HTTP_200_OK)
+        else:
+            k = printer.initialize_printer()
+            if k.is_online:
+                k.buzzer(1)
+                return Response({'success': 'Printer is Connected'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'Customer not found'}, status=status.HTTP_226_IM_USED)
+        
+

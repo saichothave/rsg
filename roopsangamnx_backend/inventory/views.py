@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
-from inventory.filters import CategoryFilter, SubCategoryFilter, ProductFilter, SectionFilter
+from inventory.filters import CategoryFilter, ProductArticleFilter, SubCategoryFilter, ProductFilter, SectionFilter
 from .models import Category, Product, SubCategory, Brand, ProductColor, ProductSize
 from .serializers import *
 from django_filters.rest_framework import DjangoFilterBackend
@@ -33,6 +33,15 @@ class SubcategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = SubCategoryFilter
+
+class ProductArticleViewSet(viewsets.ModelViewSet):
+    queryset = ProductArticle.objects.all()
+    serializer_class = ProductArticleSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ProductArticleFilter
+
+
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
@@ -71,6 +80,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         section = self.get_or_create_section(data.get('section'))
         category = self.get_or_create_category(data.get('category'), section)
         subcategory = self.get_or_create_subcategory(data.get('subcategory'), category)
+        article = self.get_or_create_article(data.get('article'))
         size = self.get_or_create_product_size(data.get('size'))
         color = self.get_or_create_product_color(data.get('color'))
 
@@ -78,6 +88,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         data['brand'] = brand.pk
         data['section'] = section.pk
         data['category'] = category.pk
+        data['article'] = article.pk
 
         if subcategory:
             data['subcategory'] = subcategory.pk
@@ -85,6 +96,9 @@ class ProductViewSet(viewsets.ModelViewSet):
             data['size'] = size.pk
         if color:
             data['color'] = color.pk
+
+        if article:
+            data['article'] = article.pk
 
         # Validate and save the serializer
         # set mutable flag back
@@ -105,6 +119,8 @@ class ProductViewSet(viewsets.ModelViewSet):
             data['size'] = size
         if color:
             data['color'] = color
+        if article:
+            data['article'] = article
 
         # Validate and save the serializer
         # set mutable flag back
@@ -133,6 +149,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         section = self.get_or_create_section(data.get('section'))
         category = self.get_or_create_category(data.get('category'), section)
         subcategory = self.get_or_create_subcategory(data.get('subcategory'), category)
+        article = self.get_or_create_article(data.get('article'))
         size = self.get_or_create_product_size(data.get('size'))
         color = self.get_or_create_product_color(data.get('color'))
 
@@ -147,6 +164,8 @@ class ProductViewSet(viewsets.ModelViewSet):
             data['size'] = size.pk
         if color:
             data['color'] = color.pk
+        if article:
+            data['article'] = article.pk
 
         # Validate and save the serializer
         # set mutable flag back
@@ -205,6 +224,18 @@ class ProductViewSet(viewsets.ModelViewSet):
             subcategory, created = SubCategory.objects.get_or_create(name=subcategory_name, category=category)
 
         return subcategory
+    
+    def get_or_create_article(self, article_data):
+        if not article_data:
+            return None
+
+        article_name = article_data.get('article')
+        try:
+            article = ProductArticle.objects.get(article__iexact=article_name) 
+        except:
+            article, created = ProductArticle.objects.get_or_create(article=article_name)
+
+        return article
 
     def get_or_create_product_size(self, size_data):
         if not size_data:
@@ -236,6 +267,7 @@ class FilterView(APIView):
         brands = Brand.objects.all()
         product_colors = ProductColor.objects.all()
         product_sizes = ProductSize.objects.all()
+        product_articles = ProductArticle.objects.all()
         
         data = {
             'sections': SectionSerializer(sections, many=True).data,
@@ -244,6 +276,7 @@ class FilterView(APIView):
             'brands': BrandSerializer(brands, many=True).data,
             'product_colors': ProductColorSerializer(product_colors, many=True).data,
             'product_sizes': ProductSizeSerializer(product_sizes, many=True).data,
+            'product_articles' : ProductArticleSerializer(product_articles, many=True).data
         }
         
         return Response(data)
