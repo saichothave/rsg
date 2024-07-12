@@ -68,7 +68,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         # set to mutable
         data._mutable = True
         # Ensure nested JSON fields are parsed correctly
-        for field in ['brand', 'section', 'category', 'subcategory', 'size', 'color']:
+        for field in ['brand', 'section', 'category', 'subcategory', 'size', 'color', 'article_no']:
             if field in data and isinstance(data[field], str):
                 try:
                     data[field] = json.loads(data[field])
@@ -80,7 +80,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         section = self.get_or_create_section(data.get('section'))
         category = self.get_or_create_category(data.get('category'), section)
         subcategory = self.get_or_create_subcategory(data.get('subcategory'), category)
-        article = self.get_or_create_article(data.get('article'))
+        article = self.get_or_create_article(data.get('article_no'))
         size = self.get_or_create_product_size(data.get('size'))
         color = self.get_or_create_product_color(data.get('color'))
 
@@ -88,7 +88,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         data['brand'] = brand.pk
         data['section'] = section.pk
         data['category'] = category.pk
-        data['article'] = article.pk
+        data['article_no'] = article.pk
 
         if subcategory:
             data['subcategory'] = subcategory.pk
@@ -98,7 +98,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             data['color'] = color.pk
 
         if article:
-            data['article'] = article.pk
+            data['article_no'] = article.pk
 
         # Validate and save the serializer
         # set mutable flag back
@@ -120,7 +120,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         if color:
             data['color'] = color
         if article:
-            data['article'] = article
+            data['article_no'] = article
 
         # Validate and save the serializer
         # set mutable flag back
@@ -137,7 +137,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         # set to mutable
         data._mutable = True
         # Ensure nested JSON fields are parsed correctly
-        for field in ['brand', 'section', 'category', 'subcategory', 'size', 'color']:
+        for field in ['brand', 'section', 'category', 'subcategory', 'size', 'color', 'article_no']:
             if field in data and isinstance(data[field], str):
                 try:
                     data[field] = json.loads(data[field])
@@ -149,7 +149,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         section = self.get_or_create_section(data.get('section'))
         category = self.get_or_create_category(data.get('category'), section)
         subcategory = self.get_or_create_subcategory(data.get('subcategory'), category)
-        article = self.get_or_create_article(data.get('article'))
+        article = self.get_or_create_article(data.get('article_no'))
         size = self.get_or_create_product_size(data.get('size'))
         color = self.get_or_create_product_color(data.get('color'))
 
@@ -165,7 +165,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         if color:
             data['color'] = color.pk
         if article:
-            data['article'] = article.pk
+            data['article_no'] = article.pk
 
         # Validate and save the serializer
         # set mutable flag back
@@ -226,6 +226,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         return subcategory
     
     def get_or_create_article(self, article_data):
+        print("art",article_data)
         if not article_data:
             return None
 
