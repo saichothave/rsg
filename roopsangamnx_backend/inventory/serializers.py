@@ -41,7 +41,7 @@ class ProductSizeSerializer(serializers.ModelSerializer):
 class ProductArticleSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductArticle
-        fields = "__all__"
+        fields = "__all__"  
 
 class ProductSerializer(serializers.ModelSerializer):
     section = SectionSerializer()
@@ -50,7 +50,7 @@ class ProductSerializer(serializers.ModelSerializer):
     brand = BrandSerializer()
     size = ProductSizeSerializer()
     color = ProductColorSerializer()
-    article_no = ProductArticleSerializer()
+    article_no = ProductArticleSerializer() 
     
     class Meta:
         model = Product
