@@ -1,15 +1,16 @@
 from django.contrib import admin
 from .models import Customer, Billing, BillingItem
+from unfold.admin import ModelAdmin
 
 
-class BillingAdmin(admin.ModelAdmin):
+class BillingAdmin(ModelAdmin):
     model = Billing
     list_display = [
         'id','customer_details', 'total_amount', 'date', 'isPaid', 'payment_mode'
     ]
     search_fields = [ 'id','customer_details__name','total_amount', 'date']
 
-class BillingItemAdmin(admin.ModelAdmin):
+class BillingItemAdmin(ModelAdmin):
     model = BillingItem
     list_display = [
         'billing', 'product', 'unit_price', 'quantity', 'discount',  'total_price', 

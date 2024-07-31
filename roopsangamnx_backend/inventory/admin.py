@@ -1,5 +1,7 @@
 from django.contrib import admin
 from .models import Category, Product, Brand, ProductArticle, ProductVariant, SubCategory, ProductColor, ProductSize, Section
+from unfold.admin import ModelAdmin
+
 
 class SubCategoryInline(admin.TabularInline):
     model = SubCategory
@@ -10,14 +12,14 @@ class CategoryInline(admin.TabularInline):
     extra = 1
 
 
-class SectionAdmin(admin.ModelAdmin):
+class SectionAdmin(ModelAdmin):
     model = Section
     list_display = [
         'name'
     ]
     ordering = ['name']
     search_fields = ['name']
-class CategoryAdmin(admin.ModelAdmin):
+class CategoryAdmin(ModelAdmin):
     list_display = [
         'name',
         'section'
@@ -27,7 +29,7 @@ class CategoryAdmin(admin.ModelAdmin):
     list_filter = ['section']
     inlines = [SubCategoryInline]
 
-class SubCategoryAdmin(admin.ModelAdmin):
+class SubCategoryAdmin(ModelAdmin):
     list_display = [
         'name',
         'category'
@@ -35,7 +37,7 @@ class SubCategoryAdmin(admin.ModelAdmin):
     search_fields = ['name']
     ordering = ['name']
 
-class ProductAdmin(admin.ModelAdmin):
+class ProductAdmin(ModelAdmin):
     list_display = (
         'name', 'brand', 'section', 'category', 
         'subcategory', 'is_multi_pack', 'multi_pack_quantity'
@@ -44,15 +46,15 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ('brand', 'category', 'subcategory', 'section')
 
 
-class ProductColorAdmin(admin.ModelAdmin):
+class ProductColorAdmin(ModelAdmin):
     model = ProductColor
     search_fields, ordering = ['color'], ['color']
 
-class ProductSizeAdmin(admin.ModelAdmin):
+class ProductSizeAdmin(ModelAdmin):
     model = ProductSize
     search_fields, ordering = ['size'], ['size']
 
-class ProductArticleAdmin(admin.ModelAdmin):
+class ProductArticleAdmin(ModelAdmin):
     model = ProductArticle
     search_fields, ordering = ['article'], ['article']
 

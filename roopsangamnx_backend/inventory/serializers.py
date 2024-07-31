@@ -47,7 +47,7 @@ class ProductSizeSerializer(serializers.ModelSerializer):
 class ProductArticleSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductArticle
-        fields = "__all__"
+        fields = "__all__"  
 
 
 class ProductVariantSerializer(serializers.ModelSerializer):
@@ -66,7 +66,6 @@ class ProductSerializer(serializers.ModelSerializer):
     brand = BrandSerializer()
     article_no = ProductArticleSerializer()
     variants = ProductVariantSerializer(many=True)
-
     
     class Meta:
         model = Product
