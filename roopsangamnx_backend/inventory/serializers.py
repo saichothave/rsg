@@ -1,28 +1,34 @@
 from rest_framework import serializers
-from .models import Category, Product, ProductArticle, Section, SubCategory, Brand, ProductColor, ProductSize
+from .models import Category, Product, ProductArticle, ProductVariant, Section, SubCategory, Brand, ProductColor, ProductSize
 
 
-
-class SubcategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SubCategory
-        fields = "__all__"
-
-
-class CategorySerializer(serializers.ModelSerializer):
-    subcategories = SubcategorySerializer(many=True, read_only=True)
-    class Meta:
-        model = Category
-        fields = "__all__"
 
 class SectionSerializer(serializers.ModelSerializer):
-    category = CategorySerializer(many=True, read_only=True)
+    name = serializers.CharField(max_length=255, required=False, allow_blank=True)
 
     class Meta:
         model = Section
         fields = "__all__"
 
+
+class CategorySerializer(serializers.ModelSerializer):
+    # subcategories = SubcategorySerializer(many=True, read_only=True)
+    name = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    section = SectionSerializer()
+    class Meta:
+        model = Category
+        fields = "__all__"
+
+
+class SubcategorySerializer(serializers.ModelSerializer):
+    name = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    category = CategorySerializer()
+    class Meta:
+        model = SubCategory
+        fields = "__all__"
+
 class BrandSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(max_length=255, required=False, allow_blank=True)
     class Meta:
         model = Brand
         fields = "__all__"
@@ -43,14 +49,24 @@ class ProductArticleSerializer(serializers.ModelSerializer):
         model = ProductArticle
         fields = "__all__"
 
+
+class ProductVariantSerializer(serializers.ModelSerializer):
+    size = ProductSizeSerializer()
+    color = ProductColorSerializer()
+
+    class Meta:
+        model = ProductVariant
+        fields = ['id', 'size', 'color', 'mfd_date', 'buying_price', 'selling_price', 'applicable_gst', 'inventory']
+
+
 class ProductSerializer(serializers.ModelSerializer):
     section = SectionSerializer()
     category = CategorySerializer()
     subcategory = SubcategorySerializer()
     brand = BrandSerializer()
-    size = ProductSizeSerializer()
-    color = ProductColorSerializer()
     article_no = ProductArticleSerializer()
+    variants = ProductVariantSerializer(many=True)
+
     
     class Meta:
         model = Product
@@ -94,6 +110,7 @@ class ProductSerializer(serializers.ModelSerializer):
     #     return product
     
 
+# unused
 class ProductWriteSerializer(serializers.ModelSerializer):
     section = serializers.PrimaryKeyRelatedField(queryset=Section.objects.all())
     category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
@@ -133,4 +150,117 @@ class FilterSerializer(serializers.Serializer):
     product_colors = ProductColorSerializer(many=True)
     product_sizes = ProductSizeSerializer(many=True)
     product_article = ProductArticleSerializer(many=True)
+
+
+# class NewProductSerializer(serializers.ModelSerializer):
+#     variants = ProductVariantSerializer(many=True)
+#     section = SectionSerializer()
+#     category = CategorySerializer()
+#     subcategory = SubcategorySerializer()
+#     brand = BrandSerializer()
+#     article_no = ProductArticleSerializer()
+
+#     class Meta:
+#         model = Product
+#         fields = '__all__'
+
+#     def create_or_get(self, model, validated_data):
+#         instance, created = model.objects.get_or_create(**validated_data)
+#         return instance
+
+#     def create(self, validated_data):
+#         variants_data = validated_data.pop('variants')
+        
+#         section_data = validated_data.pop('section')
+#         section = self.create_or_get(Section, section_data)
+        
+#         category_data = validated_data.pop('category')
+#         category = self.create_or_get(Category, category_data)
+        
+#         subcategory_data = validated_data.pop('subcategory')
+#         subcategory = self.create_or_get(SubCategory, subcategory_data)
+        
+#         brand_data = validated_data.pop('brand')
+#         brand = self.create_or_get(Brand, brand_data)
+        
+#         article_no_data = validated_data.pop('article_no')
+#         article_no = self.create_or_get(ProductArticle, article_no_data)
+        
+#         product = Product.objects.create(
+#             section=section,
+#             category=category,
+#             subcategory=subcategory,
+#             brand=brand,
+#             article_no=article_no,
+#             **validated_data
+#         )
+        
+#         for variant_data in variants_data:
+#             size_data = variant_data.pop('size')
+#             size = self.create_or_get(ProductSize, size_data)
+            
+#             color_data = variant_data.pop('color')
+#             color = self.create_or_get(ProductColor, color_data)
+            
+#             ProductVariant.objects.create(product=product, size=size, color=color, **variant_data)
+        
+#         return product
+    
+    
+class NewProductSerializer(serializers.ModelSerializer):
+    variants = ProductVariantSerializer(many=True)
+    section = SectionSerializer()
+    category = CategorySerializer()
+    subcategory = SubcategorySerializer()
+    brand = BrandSerializer()
+    article_no = ProductArticleSerializer()
+
+    class Meta:
+        model = Product
+        fields = '__all__'
+
+    def create_or_get(self, model, validated_data):
+        print(validated_data)
+        instance, created = model.objects.get_or_create(**validated_data)
+        return instance
+
+    def create(self, validated_data):
+        variants_data = validated_data.pop('variants')
+        
+        section_data = validated_data.pop('section')
+        section = self.create_or_get(Section, section_data)
+        
+        category_data = validated_data.pop('category')
+        category_data['section'] = section
+        category = self.create_or_get(Category, category_data)
+        
+        subcategory_data = validated_data.pop('subcategory')
+        subcategory_data['category'] = category
+        subcategory = self.create_or_get(SubCategory, subcategory_data)
+        
+        brand_data = validated_data.pop('brand')
+        brand = self.create_or_get(Brand, brand_data)
+        
+        article_no_data = validated_data.pop('article_no')
+        article_no = self.create_or_get(ProductArticle, article_no_data)
+        
+        product = Product.objects.create(
+            section=section,
+            category=category,
+            subcategory=subcategory,
+            brand=brand,
+            article_no=article_no,
+            **validated_data
+        )
+        
+        for variant_data in variants_data:
+            size_data = variant_data.pop('size')
+            size = self.create_or_get(ProductSize, size_data)
+            
+            color_data = variant_data.pop('color')
+            color = self.create_or_get(ProductColor, color_data)
+            
+            ProductVariant.objects.create(product=product, size=size, color=color, **variant_data)
+        
+        return product
     

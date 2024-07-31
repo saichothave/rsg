@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, Brand, ProductArticle, SubCategory, ProductColor, ProductSize, Section
+from .models import Category, Product, Brand, ProductArticle, ProductVariant, SubCategory, ProductColor, ProductSize, Section
 
 class SubCategoryInline(admin.TabularInline):
     model = SubCategory
@@ -37,13 +37,11 @@ class SubCategoryAdmin(admin.ModelAdmin):
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
-        'name', 'brand', 'size', 'color', 
-        'section', 'category', 
-        'subcategory', 'selling_price', 
-        'inventory', 'barcode', 'is_multi_pack', 'multi_pack_quantity'
+        'name', 'brand', 'section', 'category', 
+        'subcategory', 'is_multi_pack', 'multi_pack_quantity'
     )
-    search_fields = ('name', 'brand__name', 'category__name', 'subcategory__name', 'barcode', 'color__color')
-    list_filter = ('brand', 'category', 'subcategory', 'color', 'size', 'section')
+    search_fields = ('name', 'brand__name', 'category__name', 'subcategory__name', 'barcode' )
+    list_filter = ('brand', 'category', 'subcategory', 'section')
 
 
 class ProductColorAdmin(admin.ModelAdmin):
@@ -58,6 +56,24 @@ class ProductArticleAdmin(admin.ModelAdmin):
     model = ProductArticle
     search_fields, ordering = ['article'], ['article']
 
+class ProductVariantAdmin(admin.ModelAdmin):
+    # list_display = (
+    #     'product__name', 'product__brand', 'product__section', 'product__category', 
+    #     'product__subcategory', 'product__is_multi_pack', 'product__multi_pack_quantity'
+    # )
+    list_display = ('product_name', 'product_category', 'color', 'size', 'selling_price', 'inventory', )
+    search_fields = ('product__name', 'product__barcode')
+    # list_filter = ('product', 'mfd_date', 'size__size')
+    list_filter = ('product__section', 'product__brand', 'product__category', 'product__subcategory', 'size')
+    raw_id_fields = ('color', 'product')
+
+    def product_name(self, obj):
+        return obj.product.brand.name +" "+ obj.product.name
+    
+    def product_category(self, obj):
+        return obj.product.category.name + " [" + obj.product.subcategory.name + "]"
+
+
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(ProductColor, ProductColorAdmin)
@@ -66,6 +82,7 @@ admin.site.register(Brand)
 admin.site.register(SubCategory, SubCategoryAdmin)
 admin.site.register(Section, SectionAdmin)
 admin.site.register(ProductArticle, ProductArticleAdmin)
+admin.site.register(ProductVariant, ProductVariantAdmin)
 
 
 
