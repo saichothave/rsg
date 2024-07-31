@@ -3,9 +3,9 @@ from django.http import JsonResponse
 from rest_framework import serializers
 from authentication.serializers import BillingDeskSerializer
 from billing.methods import reduce_product_quantity
-from inventory.models import Product
+from inventory.models import Product, ProductVariant
 from .models import Customer, BillingDesk, Billing, BillingItem
-from inventory.serializers import ProductSerializer
+from inventory.serializers import ProductSerializer, ProductVariantSerializer
 
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -15,13 +15,16 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 class BillingItemSerializer(serializers.ModelSerializer):
     # product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())  # Use PrimaryKeyRelatedField for product
+    product_variant = ProductVariantSerializer(read_only=True)  # Include product details in response
+    product_variant_id = serializers.PrimaryKeyRelatedField(queryset=ProductVariant.objects.all(), write_only=True, source='product_variant')
+
     product = ProductSerializer(read_only=True)  # Include product details in response
     product_id = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), write_only=True, source='product')
 
 
     class Meta:
         model = BillingItem
-        fields = ['product', 'product_id', 'quantity', 'unit_price', 'total_price', 'discount']
+        fields = ['product_variant', 'product_variant_id', 'product', 'product_id', 'quantity', 'unit_price', 'total_price', 'discount']
 
 
 class BillingSerializer(serializers.ModelSerializer):
@@ -42,6 +45,8 @@ class BillingSerializer(serializers.ModelSerializer):
         # Create or get the customer instance
         customer_instance = None
 
+        # print(item_data)
+
         if(customer_data['phone_number']):
             customer_instance, created = Customer.objects.get_or_create(phone_number=customer_data['phone_number'], defaults=customer_data)
         else:
@@ -55,14 +60,15 @@ class BillingSerializer(serializers.ModelSerializer):
         billing = Billing.objects.create(customer_details=customer_instance,**validated_data)
 
         for item_data in items_data:
-            product_id = item_data.get('product').id
-            print('item data', item_data)
-            product = Product.objects.get(id=product_id)
-            print('product', product)
-            print('inventory',product.inventory)
-            if not product:
-                raise serializers.ValidationError({'product': f'Product with id {product_id} does not exist.'})
-            reduce_product_quantity(product, item_data.get('quantity'))
+            print(item_data)
+            product_variant_id = item_data.get('product_variant').id
+            # print('item data', item_data)
+            product_variant = ProductVariant.objects.get(id=product_variant_id)
+            # print('product', product)
+            # print('inventory',product.inventory)
+            if not product_variant:
+                raise serializers.ValidationError({'product': f'Product with Variant id {product_variant_id} does not exist.'})
+            reduce_product_quantity(product_variant, item_data.get('quantity'))
             BillingItem.objects.create(billing=billing, **item_data)
         return billing
     

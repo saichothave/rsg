@@ -42,223 +42,229 @@ class ProductArticleViewSet(viewsets.ModelViewSet):
     filterset_class = ProductArticleFilter
 
 
-
-class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
+class ProductVariantViewSet(viewsets.ModelViewSet):
+    queryset = ProductVariant.objects.all()
+    serializer_class = ProductVariantSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
-    filterset_class = ProductFilter
 
-    parser_classes = (JSONParser, MultiPartParser, FormParser)
+#unused
+# class ProductViewSet(viewsets.ModelViewSet):
+#     queryset = Product.objects.all()
+#     serializer_class = ProductSerializer
+#     permission_classes = [IsAuthenticated]
+#     filter_backends = [DjangoFilterBackend]
+#     filterset_class = ProductFilter
 
-    def get_queryset(self):
-        products = Product.objects.all().order_by('-updated_at')
-        return products
+#     parser_classes = (JSONParser, MultiPartParser, FormParser)
 
-    def get_serializer_class(self):
-        if self.action == 'create' or self.action == 'update':
-            return ProductWriteSerializer  # Use WriteSerializer for POST requests
-        return self.serializer_class  # Use ReadSerializer for other operations
+#     def get_queryset(self):
+#         products = Product.objects.all().order_by('-updated_at')
+#         return products
 
-    def create(self, request, *args, **kwargs):
-        data = request.data
-        _mutable = data._mutable
+#     def get_serializer_class(self):
+#         if self.action == 'create' or self.action == 'update':
+#             return ProductWriteSerializer  # Use WriteSerializer for POST requests
+#         return self.serializer_class  # Use ReadSerializer for other operations
 
-        # set to mutable
-        data._mutable = True
-        # Ensure nested JSON fields are parsed correctly
-        for field in ['brand', 'section', 'category', 'subcategory', 'size', 'color', 'article_no']:
-            if field in data and isinstance(data[field], str):
-                try:
-                    data[field] = json.loads(data[field])
-                except json.JSONDecodeError:
-                    return Response({'error': f'Invalid JSON format for {field}'}, status=status.HTTP_400_BAD_REQUEST)
+#     def create(self, request, *args, **kwargs):
+#         data = request.data
+#         _mutable = data._mutable
 
-        # Extract and create or retrieve related objects
-        brand = self.get_or_create_brand(data.get('brand'))
-        section = self.get_or_create_section(data.get('section'))
-        category = self.get_or_create_category(data.get('category'), section)
-        subcategory = self.get_or_create_subcategory(data.get('subcategory'), category)
-        article = self.get_or_create_article(data.get('article_no'))
-        size = self.get_or_create_product_size(data.get('size'))
-        color = self.get_or_create_product_color(data.get('color'))
+#         # set to mutable
+#         data._mutable = True
+#         # Ensure nested JSON fields are parsed correctly
+#         for field in ['brand', 'section', 'category', 'subcategory', 'size', 'color', 'article_no']:
+#             if field in data and isinstance(data[field], str):
+#                 try:
+#                     data[field] = json.loads(data[field])
+#                 except json.JSONDecodeError:
+#                     return Response({'error': f'Invalid JSON format for {field}'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Assign the primary keys of related objects to data dictionary
-        data['brand'] = brand.pk
-        data['section'] = section.pk
-        data['category'] = category.pk
-        data['article_no'] = article.pk
+#         # Extract and create or retrieve related objects
+#         brand = self.get_or_create_brand(data.get('brand'))
+#         section = self.get_or_create_section(data.get('section'))
+#         category = self.get_or_create_category(data.get('category'), section)
+#         subcategory = self.get_or_create_subcategory(data.get('subcategory'), category)
+#         article = self.get_or_create_article(data.get('article_no'))
+#         size = self.get_or_create_product_size(data.get('size'))
+#         color = self.get_or_create_product_color(data.get('color'))
 
-        if subcategory:
-            data['subcategory'] = subcategory.pk
-        if size:
-            data['size'] = size.pk
-        if color:
-            data['color'] = color.pk
+#         # Assign the primary keys of related objects to data dictionary
+#         data['brand'] = brand.pk
+#         data['section'] = section.pk
+#         data['category'] = category.pk
+#         data['article_no'] = article.pk
 
-        if article:
-            data['article_no'] = article.pk
+#         if subcategory:
+#             data['subcategory'] = subcategory.pk
+#         if size:
+#             data['size'] = size.pk
+#         if color:
+#             data['color'] = color.pk
 
-        # Validate and save the serializer
-        # set mutable flag back
-        data._mutable = _mutable
-        serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+#         if article:
+#             data['article_no'] = article.pk
 
-        data._mutable = True
+#         # Validate and save the serializer
+#         # set mutable flag back
+#         data._mutable = _mutable
+#         serializer = self.get_serializer(data=data)
+#         serializer.is_valid(raise_exception=True)
+#         self.perform_create(serializer)
 
-        data['brand'] = brand
-        data['section'] = section
-        data['category'] = category
+#         data._mutable = True
 
-        if subcategory:
-            data['subcategory'] = subcategory
-        if size:
-            data['size'] = size
-        if color:
-            data['color'] = color
-        if article:
-            data['article_no'] = article
+#         data['brand'] = brand
+#         data['section'] = section
+#         data['category'] = category
 
-        # Validate and save the serializer
-        # set mutable flag back
-        data._mutable = _mutable
+#         if subcategory:
+#             data['subcategory'] = subcategory
+#         if size:
+#             data['size'] = size
+#         if color:
+#             data['color'] = color
+#         if article:
+#             data['article_no'] = article
 
-        # Return the response
-        headers = self.get_success_headers(serializer.data)
-        return Response(ProductSerializer(data).data, status=status.HTTP_201_CREATED, headers=headers)
+#         # Validate and save the serializer
+#         # set mutable flag back
+#         data._mutable = _mutable
 
-    def update(self, request, *args, **kwargs):
-        data = request.data
-        _mutable = data._mutable
+#         # Return the response
+#         headers = self.get_success_headers(serializer.data)
+#         return Response(ProductSerializer(data).data, status=status.HTTP_201_CREATED, headers=headers)
 
-        # set to mutable
-        data._mutable = True
-        # Ensure nested JSON fields are parsed correctly
-        for field in ['brand', 'section', 'category', 'subcategory', 'size', 'color', 'article_no']:
-            if field in data and isinstance(data[field], str):
-                try:
-                    data[field] = json.loads(data[field])
-                except json.JSONDecodeError:
-                    return Response({'error': f'Invalid JSON format for {field}'}, status=status.HTTP_400_BAD_REQUEST)
+#     def update(self, request, *args, **kwargs):
+#         data = request.data
+#         _mutable = data._mutable
 
-        # Extract and create or retrieve related objects
-        brand = self.get_or_create_brand(data.get('brand'))
-        section = self.get_or_create_section(data.get('section'))
-        category = self.get_or_create_category(data.get('category'), section)
-        subcategory = self.get_or_create_subcategory(data.get('subcategory'), category)
-        article = self.get_or_create_article(data.get('article_no'))
-        size = self.get_or_create_product_size(data.get('size'))
-        color = self.get_or_create_product_color(data.get('color'))
+#         # set to mutable
+#         data._mutable = True
+#         # Ensure nested JSON fields are parsed correctly
+#         for field in ['brand', 'section', 'category', 'subcategory', 'size', 'color', 'article_no']:
+#             if field in data and isinstance(data[field], str):
+#                 try:
+#                     data[field] = json.loads(data[field])
+#                 except json.JSONDecodeError:
+#                     return Response({'error': f'Invalid JSON format for {field}'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Assign the primary keys of related objects to data dictionary
-        data['brand'] = brand.pk
-        data['section'] = section.pk
-        data['category'] = category.pk
+#         # Extract and create or retrieve related objects
+#         brand = self.get_or_create_brand(data.get('brand'))
+#         section = self.get_or_create_section(data.get('section'))
+#         category = self.get_or_create_category(data.get('category'), section)
+#         subcategory = self.get_or_create_subcategory(data.get('subcategory'), category)
+#         article = self.get_or_create_article(data.get('article_no'))
+#         size = self.get_or_create_product_size(data.get('size'))
+#         color = self.get_or_create_product_color(data.get('color'))
+
+#         # Assign the primary keys of related objects to data dictionary
+#         data['brand'] = brand.pk
+#         data['section'] = section.pk
+#         data['category'] = category.pk
         
-        if subcategory:
-            data['subcategory'] = subcategory.pk
-        if size:
-            data['size'] = size.pk
-        if color:
-            data['color'] = color.pk
-        if article:
-            data['article_no'] = article.pk
+#         if subcategory:
+#             data['subcategory'] = subcategory.pk
+#         if size:
+#             data['size'] = size.pk
+#         if color:
+#             data['color'] = color.pk
+#         if article:
+#             data['article_no'] = article.pk
 
-        # Validate and save the serializer
-        # set mutable flag back
-        data._mutable = _mutable
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+#         # Validate and save the serializer
+#         # set mutable flag back
+#         data._mutable = _mutable
+#         partial = kwargs.pop('partial', False)
+#         instance = self.get_object()
+#         serializer = self.get_serializer(instance, data=data, partial=partial)
+#         serializer.is_valid(raise_exception=True)
+#         self.perform_update(serializer)
 
-        return Response(serializer.data)
+#         return Response(serializer.data)
 
 
-    def get_or_create_brand(self, brand_data):
-        if not brand_data:
-            return None
+#     def get_or_create_brand(self, brand_data):
+#         if not brand_data:
+#             return None
 
-        brand_name = brand_data.get('name').title()
+#         brand_name = brand_data.get('name').title()
 
-        try:
-            brand = Brand.objects.get(name__iexact=brand_name) 
-        except:
-            brand, created = Brand.objects.get_or_create(name=brand_name)
-        return brand
+#         try:
+#             brand = Brand.objects.get(name__iexact=brand_name) 
+#         except:
+#             brand, created = Brand.objects.get_or_create(name=brand_name)
+#         return brand
     
-    def get_or_create_section(self, section_data):
-        if not section_data:
-            return None
+#     def get_or_create_section(self, section_data):
+#         if not section_data:
+#             return None
 
-        section_name = section_data.get('name').title()
-        try:
-            section = Section.objects.get(name__iexact=section_name) 
-        except:
-            section, created = Section.objects.get_or_create(name=section_name)
-        return section
+#         section_name = section_data.get('name').title()
+#         try:
+#             section = Section.objects.get(name__iexact=section_name) 
+#         except:
+#             section, created = Section.objects.get_or_create(name=section_name)
+#         return section
 
-    def get_or_create_category(self, category_data, section):
-        if not category_data:
-            return None
+#     def get_or_create_category(self, category_data, section):
+#         if not category_data:
+#             return None
 
-        category_name = category_data.get('name')
-        try:
-            category = Category.objects.get(name__iexact=category_name) 
-        except:
-            category, created = Category.objects.get_or_create(name=category_name, section=section)
-        return category
+#         category_name = category_data.get('name')
+#         try:
+#             category = Category.objects.get(name__iexact=category_name) 
+#         except:
+#             category, created = Category.objects.get_or_create(name=category_name, section=section)
+#         return category
 
-    def get_or_create_subcategory(self, subcategory_data, category):
-        if not subcategory_data:
-            return None
+#     def get_or_create_subcategory(self, subcategory_data, category):
+#         if not subcategory_data:
+#             return None
 
-        subcategory_name = subcategory_data.get('name')
-        try:
-            subcategory = SubCategory.objects.get(name__iexact=subcategory_name) 
-        except:
-            subcategory, created = SubCategory.objects.get_or_create(name=subcategory_name, category=category)
+#         subcategory_name = subcategory_data.get('name')
+#         try:
+#             subcategory = SubCategory.objects.get(name__iexact=subcategory_name) 
+#         except:
+#             subcategory, created = SubCategory.objects.get_or_create(name=subcategory_name, category=category)
 
-        return subcategory
+#         return subcategory
     
-    def get_or_create_article(self, article_data):
-        print("art",article_data)
-        if not article_data:
-            return None
+#     def get_or_create_article(self, article_data):
+#         print("art",article_data)
+#         if not article_data:
+#             return None
 
-        article_name = article_data.get('article')
-        try:
-            article = ProductArticle.objects.get(article__iexact=article_name) 
-        except:
-            article, created = ProductArticle.objects.get_or_create(article=article_name)
+#         article_name = article_data.get('article')
+#         try:
+#             article = ProductArticle.objects.get(article__iexact=article_name) 
+#         except:
+#             article, created = ProductArticle.objects.get_or_create(article=article_name)
 
-        return article
+#         return article
 
-    def get_or_create_product_size(self, size_data):
-        if not size_data:
-            return None
+#     def get_or_create_product_size(self, size_data):
+#         if not size_data:
+#             return None
 
-        size_name = size_data.get('size')
-        try:
-            size = ProductSize.objects.get(size__iexact=size_name)
-        except:
-            size, created = ProductSize.objects.get_or_create(size=size_name)
-        return size
+#         size_name = size_data.get('size')
+#         try:
+#             size = ProductSize.objects.get(size__iexact=size_name)
+#         except:
+#             size, created = ProductSize.objects.get_or_create(size=size_name)
+#         return size
 
-    def get_or_create_product_color(self, color_data):
-        if not color_data:
-            return None
+#     def get_or_create_product_color(self, color_data):
+#         if not color_data:
+#             return None
 
-        color_name = color_data.get('color').title()
-        try:
-            color = ProductColor.objects.get(color__iexact=color_name)
-        except:
-            color, created = ProductColor.objects.get_or_create(color=color_name)
-        return color
+#         color_name = color_data.get('color').title()
+#         try:
+#             color = ProductColor.objects.get(color__iexact=color_name)
+#         except:
+#             color, created = ProductColor.objects.get_or_create(color=color_name)
+#         return color
 
 class FilterView(APIView):
     def get(self, request, *args, **kwargs):
@@ -281,4 +287,12 @@ class FilterView(APIView):
         }
         
         return Response(data)
-   
+    
+class NewProductVariantViewSet(viewsets.ModelViewSet):
+    queryset = ProductVariant.objects.all()
+    serializer_class = ProductVariantSerializer
+
+class ProductViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.all()
+    serializer_class = NewProductSerializer
+    parser_classes = (JSONParser, MultiPartParser, FormParser)

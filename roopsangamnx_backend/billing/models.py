@@ -1,5 +1,5 @@
 from django.db import models
-from inventory.models import Product
+from inventory.models import Product, ProductVariant
 from authentication.models import BillingDesk
 from roopsangamnx_backend.models import TimeStampedModel
 
@@ -31,6 +31,7 @@ class Billing(TimeStampedModel):
 class BillingItem(TimeStampedModel):
     billing = models.ForeignKey(Billing, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product_variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, null=True)
     quantity = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
