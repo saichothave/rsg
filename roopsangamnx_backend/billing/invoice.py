@@ -97,7 +97,7 @@ def generate_invoice_image(billing, request):
 
     shop = None
     if request.user.user_type == "billingdesk":
-        shop = BillingDesk.objects.filter(user_id=request.data['billing_desk_id'])[0].assigned_shop
+        shop = BillingDesk.objects.filter(user_id=request.user.id)[0].assigned_shop
         
         centerText(shop.shop_name,title_font)
         y += title_font.size + 10
@@ -126,7 +126,7 @@ def generate_invoice_image(billing, request):
     draw.text((10, y), f"Invoice #{billing.id}", fill='black', font=content_font)
     if shop is not None:
         print(content_font.size*18)
-        draw.text((300,y), align="right", text=f"SHP#-{shop.pk} BD#-{request.data['billing_desk_id']}", fill='black', font=content_font)
+        draw.text((300,y), align="right", text=f"SHP#-{shop.pk} BD#-{request.user.id}", fill='black', font=content_font)
     y += content_font.size + 8
 
 
@@ -216,6 +216,7 @@ def generate_invoice_image(billing, request):
         # printBill(billing,request)
         response_data = {
             'image': image_base64,
+            'invoiceNumber' : billing.id,
             'metadata': {
                 'PrintStatus': 200,
                 'printMsg' : "Bill generated and Printed successfully."
@@ -224,6 +225,7 @@ def generate_invoice_image(billing, request):
     except Exception as e:
         response_data = {
             'image': image_base64,
+            'invoiceNumber' : billing.id,
             'metadata': {
                 'PrintStatus': 500,
                 'printMsg' : "Bill generated and but not able to print.\n ERROR :: " + repr(e)

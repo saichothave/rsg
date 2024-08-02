@@ -92,5 +92,16 @@ class PrinterStatus(APIView):
                 return Response({'success': 'Printer is Connected'}, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'Customer not found'}, status=status.HTTP_226_IM_USED)
+            
+class PrintInvoiceByNumber(APIView):
+    def get(self, request, invoice_number):
+        try:
+            invoice = Billing.objects.get(pk=invoice_number)
+            print(invoice)
+            response = generate_invoice_image(invoice, request)
+            return response
+            # return Response(serializer.data, status=status.HTTP_200_OK)
+        except Billing.DoesNotExist:
+            return Response({'error': 'Invoice not found'}, status=status.HTTP_404_NOT_FOUND)
         
 

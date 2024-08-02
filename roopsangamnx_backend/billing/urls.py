@@ -5,7 +5,8 @@ from .views import (
     CustomerViewSet,
     BillingViewSet, BillingItemViewSet,
     GetCustomerByPhoneNumber,
-    PrinterStatus
+    PrinterStatus,
+    PrintInvoiceByNumber
 )
 
 # Create a router object
@@ -21,7 +22,8 @@ urlpatterns = [
     path('', include(router.urls)),
     path('todays-total-by-payment-mode/', BDDashBoardView.as_view(), name='todays-total-by-payment-mode'),
     path('customer-by-phone/<str:phone_number>/', GetCustomerByPhoneNumber.as_view(), name='customer-by-phone'),
-    path('printer-status/', PrinterStatus.as_view(), name='printer-status')
+    path('printer-status/', PrinterStatus.as_view(), name='printer-status'),
+    path('print-bill/<str:invoice_number>/', PrintInvoiceByNumber.as_view(), name='print-bill')
 
 
 ]
