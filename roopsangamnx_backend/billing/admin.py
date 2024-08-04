@@ -17,8 +17,15 @@ class BillingItemAdmin(ModelAdmin):
     ]
     search_fields = [ 'id','billing__id','product__name','product__barcode']
 
+class CustomerAdmin(ModelAdmin):
+    model = Customer
+    list_display = [
+        'name', 'email', 'phone_number', 
+    ]
+    search_fields = [ 'name', 'email', 'phone_number',]
 
 
-admin.site.register(Customer)
+
+admin.site.register(Customer, CustomerAdmin)
 admin.site.register(Billing, BillingAdmin)
 admin.site.register(BillingItem, BillingItemAdmin)
