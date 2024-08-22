@@ -11,6 +11,7 @@ from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status
 import json
+from rest_framework import generics
 
 
 class SectionViewSet(viewsets.ModelViewSet):
@@ -21,14 +22,14 @@ class SectionViewSet(viewsets.ModelViewSet):
     filterset_class = SectionFilter
 
 class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Category.objects.all()
+    queryset = Category.objects.prefetch_related('section')
     serializer_class = CategorySerializer
     permission_classes = [IsAuthenticated] 
     filter_backends = [DjangoFilterBackend]
     filterset_class = CategoryFilter
 
 class SubcategoryViewSet(viewsets.ModelViewSet):
-    queryset = SubCategory.objects.all()
+    queryset = SubCategory.objects.prefetch_related('category')
     serializer_class = SubcategorySerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
@@ -43,7 +44,7 @@ class ProductArticleViewSet(viewsets.ModelViewSet):
 
 
 class ProductVariantViewSet(viewsets.ModelViewSet):
-    queryset = ProductVariant.objects.all()
+    queryset = ProductVariant.objects.prefetch_related('size', 'color')
     serializer_class = ProductVariantSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
@@ -289,10 +290,28 @@ class FilterView(APIView):
         return Response(data)
     
 class NewProductVariantViewSet(viewsets.ModelViewSet):
-    queryset = ProductVariant.objects.all()
+    queryset = ProductVariant.objects.prefetch_related('size', 'color')
     serializer_class = ProductVariantSerializer
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
+    queryset = Product.objects.prefetch_related('variants', 'section', 'category', 'subcategory', 'brand', 'article_no')
     serializer_class = NewProductSerializer
     parser_classes = (JSONParser, MultiPartParser, FormParser)
+
+class ProductByBarcodeAPIView(generics.RetrieveAPIView):
+    # queryset = Product.objects.prefetch_related('variants', 'section', 'category', 'subcategory', 'brand', 'article_no')
+    # serializer_class = NewProductSerializer
+
+    serializer_class = NewProductSerializer
+
+    def get_queryset(self):
+        barcode = self.kwargs['barcode']
+        return Product.objects.filter(barcode__endswith=barcode)
+
+    def get(self, request, barcode, *args, **kwargs):
+        products = self.get_queryset()
+        if products.exists():
+            serializer = self.get_serializer(products, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({"detail": "No products found."}, status=status.HTTP_404_NOT_FOUND)
