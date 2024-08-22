@@ -47,6 +47,7 @@ CORS_ORIGIN_WHITELIST = [
 # Application definition
 
 INSTALLED_APPS = [
+    'sslserver',
     "unfold",  # before django.contrib.admin
     # "unfold.contrib.filters",  # optional, if special filters are needed
     "unfold.contrib.forms",  # optional, if special form elements are needed
@@ -102,6 +103,7 @@ TEMPLATES = [
 ]
 
 REST_FRAMEWORK = {
+    # "DATE_INPUT_FORMATS": ["%d-%m-%Y"],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',

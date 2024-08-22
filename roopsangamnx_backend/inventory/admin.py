@@ -29,6 +29,9 @@ class CategoryAdmin(ModelAdmin):
     list_filter = ['section']
     inlines = [SubCategoryInline]
 
+class BrandAdmin(ModelAdmin):
+    model = Brand
+
 class SubCategoryAdmin(ModelAdmin):
     list_display = [
         'name',
@@ -58,7 +61,7 @@ class ProductArticleAdmin(ModelAdmin):
     model = ProductArticle
     search_fields, ordering = ['article'], ['article']
 
-class ProductVariantAdmin(admin.ModelAdmin):
+class ProductVariantAdmin(ModelAdmin):
     # list_display = (
     #     'product__name', 'product__brand', 'product__section', 'product__category', 
     #     'product__subcategory', 'product__is_multi_pack', 'product__multi_pack_quantity'
@@ -80,7 +83,7 @@ admin.site.register(Product, ProductAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(ProductColor, ProductColorAdmin)
 admin.site.register(ProductSize, ProductSizeAdmin)
-admin.site.register(Brand)
+admin.site.register(Brand, BrandAdmin)
 admin.site.register(SubCategory, SubCategoryAdmin)
 admin.site.register(Section, SectionAdmin)
 admin.site.register(ProductArticle, ProductArticleAdmin)

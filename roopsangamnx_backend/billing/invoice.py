@@ -154,7 +154,7 @@ def generate_invoice_image(billing, request):
 
     # Draw the items
     for item in billing.items.all():
-        product_detail = str(item.product.brand) + "-" + str(item.product.name)
+        product_detail = str(item.product.article_no.article) + " " + str(item.product.brand) + " - " + str(item.product.name)
         formatted_product_detail = add_newline_every_n_chars(product_detail, 15)
        
         row = [
@@ -168,8 +168,11 @@ def generate_invoice_image(billing, request):
         for i, text in enumerate(row):
             draw.text((x + sum(column_widths[:i]), y), text, fill='black', font=table_font)
         y += table_font.size + 5  # Move to the next lin
+
         lines = (len(product_detail) // 15)
-        y= y +(lines*content_font.size) + 5
+        y = y +(lines*table_font.size)
+        draw.text((x,y),"[" + str(item.product_variant.size.size) + " - " + str(item.product_variant.color.color) + "]", fill='black', font=table_font)
+        y += content_font.size + 5
 
         if y+bottom_margin >= height:
             new_height = y + table_font.size + bottom_margin  # Add some padding
