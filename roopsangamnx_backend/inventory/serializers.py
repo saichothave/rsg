@@ -8,7 +8,7 @@ class SectionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Section
-        fields = "__all__"
+        fields = ('id', 'name')
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -17,7 +17,7 @@ class CategorySerializer(serializers.ModelSerializer):
     section = SectionSerializer()
     class Meta:
         model = Category
-        fields = "__all__"
+        fields = ('id', 'name', 'section')
 
 
 class SubcategorySerializer(serializers.ModelSerializer):
@@ -25,29 +25,29 @@ class SubcategorySerializer(serializers.ModelSerializer):
     category = CategorySerializer()
     class Meta:
         model = SubCategory
-        fields = "__all__"
+        fields = ('id', 'name', 'category')
 
 class BrandSerializer(serializers.ModelSerializer):
     name = serializers.CharField(max_length=255, required=False, allow_blank=True)
     class Meta:
         model = Brand
-        fields = "__all__"
+        fields = ('id', 'name')
 
 
 class ProductColorSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductColor
-        fields = "__all__"
+        fields = ('id', 'color')
 
 class ProductSizeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductSize
-        fields = "__all__"
+        fields = ('id', 'size')
 
 class ProductArticleSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductArticle
-        fields = "__all__"  
+        fields = ('id', 'article') 
 
 
 class ProductVariantSerializer(serializers.ModelSerializer):
@@ -216,7 +216,11 @@ class NewProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = '__all__'
+        fields = [
+            'id', 'name', 'brand', 'image', 'description', 'section', 'category', 'subcategory', 'barcode',
+            'is_multi_pack', 'multi_pack_quantity', 'article_no', 'created_at', 'updated_at', 'variants'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
 
     def create_or_get(self, model, validated_data):
         print(validated_data)
