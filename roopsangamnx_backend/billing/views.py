@@ -97,7 +97,6 @@ class PrintInvoiceByNumber(APIView):
     def get(self, request, invoice_number):
         try:
             invoice = Billing.objects.get(pk=invoice_number)
-            print(invoice)
             response = generate_invoice_image(invoice, request)
             return response
             # return Response(serializer.data, status=status.HTTP_200_OK)

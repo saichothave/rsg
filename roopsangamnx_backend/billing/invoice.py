@@ -8,6 +8,7 @@ import base64
 
 from authentication.models import BillingDesk
 from billing.printer import p
+from .whatsapp import sendInvoiceTemplateMsg
 
 
 def add_newline_every_n_chars(text, n=15):
@@ -66,7 +67,7 @@ def generate_invoice_image(billing, request):
     # Create an image with white background
     width, height = 600, 900  # Example dimensions
     DASH_NUM = 200
-    bottom_margin = 80
+    bottom_margin = 150
     image = Image.new('RGB', (width, height), 'white')
     draw = ImageDraw.Draw(image)
 
@@ -237,6 +238,8 @@ def generate_invoice_image(billing, request):
     
     # response['Content-Disposition'] = f'attachment; filename="invoice_{billing.id}.png"'
     # response['X-BillStatus'] = 200
+
+    sendInvoiceTemplateMsg(image_io.getvalue(), f"+91{billing.customer_details.phone_number}",billing.customer_details.name, billing.total_amount, billing.id, billing.date)
 
     response = JsonResponse(response_data)
 
