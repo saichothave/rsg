@@ -67,6 +67,16 @@ class BDDashBoardView(APIView):
         serializer = BDDashBoardSerializer(total_by_payment_mode, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+class GetBills(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsBillingDesk]
+
+    def get(self, request, *args, **kwargs):
+        today = timezone.now().date()
+        today_bills = Billing.objects.filter(date__date=today, isPaid=True)
+        serializer = BillingListSerializer(today_bills, many=True)
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
 
 class GetCustomerByPhoneNumber(APIView):
     def get(self, request, phone_number):

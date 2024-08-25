@@ -79,7 +79,8 @@ class BDDashBoardSerializer(serializers.Serializer):
 
 class BillingListSerializer(serializers.ModelSerializer):
     customer_details = CustomerSerializer()
+    items = BillingItemSerializer(many=True, read_only=True)
 
     class Meta:
         model = Billing
-        fields = ['id', 'customer_details', 'date', 'total_amount', 'isPaid']
+        fields = ['id', 'customer_details', 'date', 'total_amount', 'isPaid', 'items', 'payment_mode']
