@@ -91,23 +91,23 @@ class GetCustomerByPhoneNumber(APIView):
 class PrinterStatus(APIView):
     def get(self, request):
         print('printer status')
-        print('p', p.device)
-        if p.device and p.is_online:
-            p.buzzer(1)
-            return Response({'success': 'Printer is Connected'}, status=status.HTTP_200_OK)
-        else:
-            k = printer.initialize_printer()
-            if k.is_online:
-                k.buzzer(1)
-                return Response({'success': 'Printer is Connected'}, status=status.HTTP_200_OK)
-            else:
-                return Response({'error': 'Customer not found'}, status=status.HTTP_226_IM_USED)
+        return Response({'success': 'Printer is Connected'}, status=status.HTTP_200_OK) # Disabled Django printing functionality
+        # if p.device and p.is_online:
+        #     p.buzzer(1)
+        #     return Response({'success': 'Printer is Connected'}, status=status.HTTP_200_OK)
+        # else:
+        #     k = printer.initialize_printer()
+        #     if k.is_online:
+        #         k.buzzer(1)
+        #         return Response({'success': 'Printer is Connected'}, status=status.HTTP_200_OK)
+        #     else:
+        #         return Response({'error': 'Customer not found'}, status=status.HTTP_226_IM_USED)
             
 class PrintInvoiceByNumber(APIView):
     def get(self, request, invoice_number):
         try:
             invoice = Billing.objects.get(pk=invoice_number)
-            response = generate_invoice_image(invoice, request)
+            response = generate_invoice_image(invoice, request, True)
             return response
             # return Response(serializer.data, status=status.HTTP_200_OK)
         except Billing.DoesNotExist:

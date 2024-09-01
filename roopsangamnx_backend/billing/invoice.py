@@ -1,6 +1,9 @@
+import json
 from PIL import Image, ImageDraw, ImageFont
 import io
 import os
+
+import requests
 from escpos.printer import Usb
 from django.http import HttpResponse, JsonResponse
 from django.conf import settings
@@ -63,11 +66,11 @@ def printImage(image):
     p.cut("FULL")
 
     
-def generate_invoice_image(billing, request):
+def generate_invoice_image(billing, request, printOnly=False):
     # Create an image with white background
     width, height = 600, 900  # Example dimensions
     DASH_NUM = 200
-    bottom_margin = 150
+    bottom_margin = 200
     image = Image.new('RGB', (width, height), 'white')
     draw = ImageDraw.Draw(image)
 
@@ -200,9 +203,7 @@ def generate_invoice_image(billing, request):
     centerText(text, font=content_font)
 
 
-    y += content_font.size + 4
-    
-
+    y += content_font.size + 20
 
 
     # Save the image to a BytesIO object
@@ -216,16 +217,53 @@ def generate_invoice_image(billing, request):
 
     response_data = None
     try:
-        printImage(image)
+        # printImage(image) // Disabled Printing from Django server
         # printBill(billing,request)
-        response_data = {
-            'image': image_base64,
-            'invoiceNumber' : billing.id,
-            'metadata': {
-                'PrintStatus': 200,
-                'printMsg' : "Bill generated and Printed successfully."
+
+        response = requests.post("http://localhost:4989/print", data= json.dumps(
+            {
+                "imageBase64" : image_base64,
+                "filename":"invoice.png"
             }
-        }
+        ), headers={"Content-Type": "application/json"})
+
+        send_whatspaa_msg_response = None
+        if not printOnly:
+            send_whatspaa_msg_response = sendInvoiceTemplateMsg(image_io.getvalue(), f"+91{billing.customer_details.phone_number}",billing.customer_details.name, billing.total_amount, billing.id, billing.date)
+        # Check the response
+        if response.status_code == 200:
+            response_data = {
+                'image': image_base64,
+                'invoiceNumber' : billing.id,
+                'metadata': {
+                    'PrintStatus': 200,
+                    'printMsg' : "Bill generated and Printed successfully."
+                }
+            }
+            if printOnly:
+                response_data['metadata']['wpMsgSts'] = 201
+                response_data['metadata']["wpMsgReason"] = 'Print Only Request'
+            else:
+                response_data['metadata']['wpMsgSts'] = send_whatspaa_msg_response.status_code
+                response_data['metadata']["wpMsgReason"] = send_whatspaa_msg_response.text
+        else:
+            response_data = {
+                'image': image_base64,
+                'invoiceNumber' : billing.id,
+                'metadata': {
+                    'PrintStatus': response.status_code,
+                    'printMsg' : "Bill generated and but not able to print.\n ERROR :: " + response.text
+                }
+            }
+
+            if printOnly:
+                response_data['metadata']['wpMsgSts'] = 201
+                response_data['metadata']["wpMsgReason"] = 'Print Only Request'
+            else:
+                response_data['metadata']['wpMsgSts'] = send_whatspaa_msg_response.status_code
+                response_data['metadata']["wpMsgReason"] = send_whatspaa_msg_response.text
+
+        
     except Exception as e:
         response_data = {
             'image': image_base64,
@@ -235,11 +273,16 @@ def generate_invoice_image(billing, request):
                 'printMsg' : "Bill generated and but not able to print.\n ERROR :: " + repr(e)
             }
         }
+        if printOnly:
+            response_data['metadata']['wpMsgSts'] = 201
+            response_data['metadata']["wpMsgReason"] = 'Print Only Request'
+        else:
+            response_data['metadata']['wpMsgSts'] = send_whatspaa_msg_response.status_code
+            response_data['metadata']["wpMsgReason"] = send_whatspaa_msg_response.text
     
     # response['Content-Disposition'] = f'attachment; filename="invoice_{billing.id}.png"'
     # response['X-BillStatus'] = 200
 
-    sendInvoiceTemplateMsg(image_io.getvalue(), f"+91{billing.customer_details.phone_number}",billing.customer_details.name, billing.total_amount, billing.id, billing.date)
 
     response = JsonResponse(response_data)
 

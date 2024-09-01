@@ -100,69 +100,73 @@ def sendInvoiceTemplateMsg(img, recipient, cust_name, amount, inv_no, inv_date):
         headers=headers
     )
 
-    media_id = upload_media.json()['id']
+    if upload_media.status_code == 200:
 
-    url = "https://graph.facebook.com/" + f"/{getenv('VERSION')}/{getenv('PHONE_NUMBER_ID')}/messages"
+        media_id = upload_media.json()['id']
 
-    headers = {
-        "Authorization": f"Bearer {getenv('APP_SECRET')}",
-        'Content-Type': 'application/json'
-    }
+        url = "https://graph.facebook.com/" + f"/{getenv('VERSION')}/{getenv('PHONE_NUMBER_ID')}/messages"
 
-    data = json.dumps({
-        "messaging_product": "whatsapp",
-        "recipient_type": "individual",
-        "to": recipient,
-        "type": "template",
-        "template": {
-            "name": "rsg_invoice",
-            "language": {
-                "code": "en_US"
-            },
-            "components": [
-                {
-                    "type": "header",
-                    "parameters": [
-                        {
-                            "type": "image",
-                            "image": {
-                                "id":media_id
-                            }
-                        }
-                    ]
-                },
-                {
-                    "type": "body",
-                    "parameters": [
-                        {
-                            "type": "text",
-                            "text": cust_name
-                        },
-                        {
-                            "type": "text",
-                            "text": inv_no
-                        },
-                        {
-                            "type": "text",
-                            "text": f"{inv_date.strftime("%b")} {inv_date.strftime("%d")}"
-                        },
-                        {
-                            "type": "currency",
-                            "currency": {
-                            "fallback_value": "VALUE",
-                            "code": "INR",
-                            "amount_1000": Decimal(amount*1000)
-                            }
-                        },
-                        {
-                            "type": "text",
-                            "text": "Roopsangam Dresses NX, Shirdi"
-                        }
-                    ]
-                }
-            ]
+        headers = {
+            "Authorization": f"Bearer {getenv('APP_SECRET')}",
+            'Content-Type': 'application/json'
         }
-    }, cls=DecimalEncoder)
 
-    response = requests.request("POST", url, headers=headers, data=data)
-    print(response.text)
+        data = json.dumps({
+            "messaging_product": "whatsapp",
+            "recipient_type": "individual",
+            "to": recipient,
+            "type": "template",
+            "template": {
+                "name": "rsg_invoice",
+                "language": {
+                    "code": "en_US"
+                },
+                "components": [
+                    {
+                        "type": "header",
+                        "parameters": [
+                            {
+                                "type": "image",
+                                "image": {
+                                    "id":media_id
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "type": "body",
+                        "parameters": [
+                            {
+                                "type": "text",
+                                "text": cust_name
+                            },
+                            {
+                                "type": "text",
+                                "text": inv_no
+                            },
+                            {
+                                "type": "text",
+                                "text": f"{inv_date.strftime("%b")} {inv_date.strftime("%d")}"
+                            },
+                            {
+                                "type": "currency",
+                                "currency": {
+                                "fallback_value": "VALUE",
+                                "code": "INR",
+                                "amount_1000": Decimal(amount*1000)
+                                }
+                            },
+                            {
+                                "type": "text",
+                                "text": "Roopsangam Dresses NX, Shirdi"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }, cls=DecimalEncoder)
+
+        response = requests.request("POST", url, headers=headers, data=data)
+        return response
+    else:
+        return upload_media
