@@ -223,9 +223,12 @@ class NewProductSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def create_or_get(self, model, validated_data):
-        print(validated_data)
-        instance, created = model.objects.get_or_create(**validated_data)
-        return instance
+        data = model.objects.filter(**validated_data).first()
+        if not data:
+            instance, created = model.objects.get_or_create(**validated_data)
+            return instance
+        else:
+            return data
 
     def create(self, validated_data):
         variants_data = validated_data.pop('variants')
