@@ -6,4 +6,4 @@ class BillingConfig(AppConfig):
     name = 'billing'
     def ready(self):
         from billing import printer
-        printer.initialize_printer()
+        # printer.initialize_printer() Disabled Django printing functionality
