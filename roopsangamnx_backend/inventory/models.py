@@ -91,7 +91,7 @@ class Product(TimeStampedModel):
     section = models.ForeignKey(Section, on_delete=models.SET_NULL, related_name='products', null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, related_name='products', null=True, blank=True)
     subcategory = models.ForeignKey(SubCategory, on_delete=models.SET_NULL, blank=True, null=True, related_name='products')
-    barcode = models.CharField(max_length=100, unique=True, null=True, blank=True)
+    barcode = models.CharField(max_length=100, unique=True, null=True, blank=True, db_index=True)
     is_multi_pack = models.BooleanField(default=False)
     multi_pack_quantity = models.IntegerField(default=1)
     article_no = models.ForeignKey(ProductArticle, related_name='products', blank=True, null=True, on_delete=models.SET_NULL)

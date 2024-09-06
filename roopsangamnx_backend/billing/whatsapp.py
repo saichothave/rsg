@@ -6,6 +6,16 @@ import requests
 
 load_dotenv()
 
+'''
+Hi *{{1}}*,
+
+We wanted to take a moment to say thank you for your purchase with {{5}}, Your *invoice# {{2}}* dated {{3}} is now available.
+
+The total amount due is *{{4}}*.
+
+We look forward to serving you again in the future!
+'''
+
 # Custom JSON encoder for Decimal objects
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):
