@@ -215,6 +215,7 @@ def generate_invoice_image(billing, request, printOnly=False):
 
     # response = HttpResponse(image_io, content_type='image/png')
 
+    send_whatspaa_msg_response = None
     response_data = None
     try:
         # printImage(image) // Disabled Printing from Django server
@@ -227,7 +228,6 @@ def generate_invoice_image(billing, request, printOnly=False):
             }
         ), headers={"Content-Type": "application/json"})
 
-        send_whatspaa_msg_response = None
         if not printOnly:
             send_whatspaa_msg_response = sendInvoiceTemplateMsg(image_io.getvalue(), f"+91{billing.customer_details.phone_number}",billing.customer_details.name, billing.total_amount, billing.id, billing.date)
         # Check the response
@@ -276,8 +276,8 @@ def generate_invoice_image(billing, request, printOnly=False):
         if printOnly:
             response_data['metadata']['wpMsgSts'] = 201
             response_data['metadata']["wpMsgReason"] = 'Print Only Request'
-        else:
             response_data['metadata']['wpMsgSts'] = send_whatspaa_msg_response.status_code
+        else:
             response_data['metadata']["wpMsgReason"] = send_whatspaa_msg_response.text
     
     # response['Content-Disposition'] = f'attachment; filename="invoice_{billing.id}.png"'
