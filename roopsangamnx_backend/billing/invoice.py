@@ -12,6 +12,7 @@ import base64
 from authentication.models import BillingDesk
 from billing.printer import p
 from .whatsapp import sendInvoiceTemplateMsg
+from os import getenv
 
 
 def add_newline_every_n_chars(text, n=15):
@@ -215,73 +216,59 @@ def generate_invoice_image(billing, request, printOnly=False):
 
     # response = HttpResponse(image_io, content_type='image/png')
 
-    send_whatspaa_msg_response = None
-    response_data = None
-    try:
-        # printImage(image) // Disabled Printing from Django server
-        # printBill(billing,request)
+    send_whatsapp_msg_response = None
+    printer_response = None
 
-        response = requests.post("http://localhost:4989/print", data= json.dumps(
-            {
-                "imageBase64" : image_base64,
-                "filename":"invoice.png"
-            }
-        ), headers={"Content-Type": "application/json"})
+    response_data = {
+        'image': image_base64,
+        'invoiceNumber' : billing.id,
+        'metadata': {
 
-        if not printOnly:
-            send_whatspaa_msg_response = sendInvoiceTemplateMsg(image_io.getvalue(), f"+91{billing.customer_details.phone_number}",billing.customer_details.name, billing.total_amount, billing.id, billing.date)
-        # Check the response
-        if response.status_code == 200:
-            response_data = {
-                'image': image_base64,
-                'invoiceNumber' : billing.id,
-                'metadata': {
-                    'PrintStatus': 200,
-                    'printMsg' : "Bill generated and Printed successfully."
-                }
-            }
-            if printOnly:
-                response_data['metadata']['wpMsgSts'] = 201
-                response_data['metadata']["wpMsgReason"] = 'Print Only Request'
-            else:
-                response_data['metadata']['wpMsgSts'] = send_whatspaa_msg_response.status_code
-                response_data['metadata']["wpMsgReason"] = send_whatspaa_msg_response.text
-        else:
-            response_data = {
-                'image': image_base64,
-                'invoiceNumber' : billing.id,
-                'metadata': {
-                    'PrintStatus': response.status_code,
-                    'printMsg' : "Bill generated and but not able to print.\n ERROR :: " + response.text
-                }
-            }
-
-            if printOnly:
-                response_data['metadata']['wpMsgSts'] = 201
-                response_data['metadata']["wpMsgReason"] = 'Print Only Request'
-            else:
-                response_data['metadata']['wpMsgSts'] = send_whatspaa_msg_response.status_code
-                response_data['metadata']["wpMsgReason"] = send_whatspaa_msg_response.text
-
-        
-    except Exception as e:
-        response_data = {
-            'image': image_base64,
-            'invoiceNumber' : billing.id,
-            'metadata': {
-                'PrintStatus': 500,
-                'printMsg' : "Bill generated and but not able to print.\n ERROR :: " + repr(e)
-            }
         }
-        if printOnly:
-            response_data['metadata']['wpMsgSts'] = 201
-            response_data['metadata']["wpMsgReason"] = 'Print Only Request'
-            response_data['metadata']['wpMsgSts'] = send_whatspaa_msg_response.status_code
+    }
+
+    # [print invoice]  - backend to print-server communication 
+    try:
+        if getenv('ISHOSTED') == "False" :
+            printer_response = requests.post(getenv('LOCALPRINTERURL'), data= json.dumps(
+                    {
+                        "imageBase64" : image_base64,
+                        "filename":"invoice.png"
+                    }
+                ), headers={"Content-Type": "application/json"})
+            
+            # Check the response
+            if printer_response is not None and printer_response.status_code == 200:
+                response_data['metadata']['PrintStatus'] = 200
+                response_data['metadata']['printMsg'] = "Bill generated and Printed successfully."
+            elif printer_response is not None:
+                response_data['metadata']['PrintStatus'] = printer_response.status_code
+                response_data['metadata']['printMsg'] = "Bill generated and but not able to print.\n ERROR :: " + printer_response.text
         else:
-            response_data['metadata']["wpMsgReason"] = send_whatspaa_msg_response.text
-    
-    # response['Content-Disposition'] = f'attachment; filename="invoice_{billing.id}.png"'
-    # response['X-BillStatus'] = 200
+            response_data['metadata']['PrintStatus'] = 300
+            response_data['metadata']['printMsg'] = "Backend is hosted on other domain"
+    except Exception as e:
+        response_data['metadata']['PrintStatus'] = 500
+        response_data['metadata']['printMsg'] = repr(e)
+
+    #[whatsapp] -  send invoice on whatsapp
+    try:
+        if getenv('HASWPINTEGRATION') == "True":
+            send_whatsapp_msg_response = sendInvoiceTemplateMsg(image_io.getvalue(), f"+91{billing.customer_details.phone_number}",billing.customer_details.name, billing.total_amount, billing.id, billing.date)
+       
+            if printOnly:
+                response_data['metadata']['wpMsgSts'] = 201
+                response_data['metadata']["wpMsgReason"] = 'Print Only Request'
+            elif send_whatsapp_msg_response is not None and send_whatsapp_msg_response.status_code == 200:
+                response_data['metadata']['wpMsgSts'] = send_whatsapp_msg_response.status_code
+                response_data['metadata']["wpMsgReason"] = send_whatsapp_msg_response.text
+        else:
+            response_data['metadata']['wpMsgSts'] = 300
+            response_data['metadata']["wpMsgReason"] = 'Whatsapp integration not available'
+ 
+    except Exception as e:
+        response_data['metadata']['wpMsgSts'] = 500
+        response_data['metadata']["wpMsgReason"] = repr(e)
 
 
     response = JsonResponse(response_data)

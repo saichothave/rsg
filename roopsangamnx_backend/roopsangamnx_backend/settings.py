@@ -146,12 +146,12 @@ print('MEDIA_ROOT', MEDIA_ROOT)
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'roopsangam_db',
-        'USER': 'sai',
-        'PASSWORD': 'sai',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'ENGINE': getenv('DBENGINE'),
+        'NAME': getenv('DBNAME'),
+        'USER': getenv('DBUSER'),
+        'PASSWORD': getenv('DBPASSWORD'),
+        'HOST': getenv('DBHOST'),
+        'PORT': getenv('DBPORT')
     }
 }
 
