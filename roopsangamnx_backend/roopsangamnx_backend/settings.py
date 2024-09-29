@@ -47,7 +47,7 @@ CORS_ORIGIN_WHITELIST = [
 # Application definition
 
 INSTALLED_APPS = [
-    'sslserver',
+    # 'sslserver',
     "unfold",  # before django.contrib.admin
     # "unfold.contrib.filters",  # optional, if special filters are needed
     "unfold.contrib.forms",  # optional, if special form elements are needed
