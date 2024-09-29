@@ -53,7 +53,7 @@ class ProductVariantViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
 
-    @method_decorator(cache_page(60*60*3))
+    @method_decorator(cache_page(60*60*18))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -303,7 +303,7 @@ class NewProductVariantViewSet(viewsets.ModelViewSet):
     queryset = ProductVariant.objects.prefetch_related('size', 'color')
     serializer_class = ProductVariantSerializer
 
-    @method_decorator(cache_page(60*60*3))
+    @method_decorator(cache_page(60*60*18))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -313,7 +313,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     parser_classes = (JSONParser, MultiPartParser, FormParser)
 
     # ref - https://stackoverflow.com/questions/51499175/caching-a-viewset-with-drf-typeerror-wrapped-view
-    @method_decorator(cache_page(60*60*3))
+    @method_decorator(cache_page(60*60*18))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -323,7 +323,7 @@ class ProductByBarcodeAPIView(generics.RetrieveAPIView):
 
     serializer_class = NewProductSerializer
 
-    @method_decorator(cache_page(60*60*3))
+    @method_decorator(cache_page(60*60*18))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
