@@ -13,6 +13,10 @@ from rest_framework import status
 import json
 from rest_framework import generics
 
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_cookie, vary_on_headers
+
 
 class SectionViewSet(viewsets.ModelViewSet):
     queryset = Section.objects.all()
@@ -48,6 +52,10 @@ class ProductVariantViewSet(viewsets.ModelViewSet):
     serializer_class = ProductVariantSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
+
+    @method_decorator(cache_page(60*60*18))
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
 
 #unused
 # class ProductViewSet(viewsets.ModelViewSet):
@@ -268,6 +276,8 @@ class ProductVariantViewSet(viewsets.ModelViewSet):
 #         return color
 
 class FilterView(APIView):
+    @method_decorator(cache_page(60 * 60 * 2))
+    @method_decorator(vary_on_cookie)
     def get(self, request, *args, **kwargs):
         sections = Section.objects.all()
         categories = Category.objects.all()
@@ -293,10 +303,19 @@ class NewProductVariantViewSet(viewsets.ModelViewSet):
     queryset = ProductVariant.objects.prefetch_related('size', 'color')
     serializer_class = ProductVariantSerializer
 
+    @method_decorator(cache_page(60*60*18))
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.prefetch_related('variants', 'section', 'category', 'subcategory', 'brand', 'article_no')
     serializer_class = NewProductSerializer
     parser_classes = (JSONParser, MultiPartParser, FormParser)
+
+    # ref - https://stackoverflow.com/questions/51499175/caching-a-viewset-with-drf-typeerror-wrapped-view
+    @method_decorator(cache_page(60*60*18))
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
 
 class ProductByBarcodeAPIView(generics.RetrieveAPIView):
     # queryset = Product.objects.prefetch_related('variants', 'section', 'category', 'subcategory', 'brand', 'article_no')
@@ -304,10 +323,16 @@ class ProductByBarcodeAPIView(generics.RetrieveAPIView):
 
     serializer_class = NewProductSerializer
 
+    @method_decorator(cache_page(60*60*18))
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
     def get_queryset(self):
         barcode = self.kwargs['barcode']
         return Product.objects.filter(barcode__endswith=barcode)
 
+    @method_decorator(cache_page(60 * 60 * 2))
+    @method_decorator(vary_on_cookie)
     def get(self, request, barcode, *args, **kwargs):
         products = self.get_queryset()
         if products.exists():
