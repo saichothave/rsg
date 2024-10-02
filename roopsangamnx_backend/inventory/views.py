@@ -2,6 +2,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from inventory.filters import CategoryFilter, ProductArticleFilter, SubCategoryFilter, ProductFilter, SectionFilter
+from authentication import permissions
 from .models import Category, Product, SubCategory, Brand, ProductColor, ProductSize
 from .serializers import *
 from django_filters.rest_framework import DjangoFilterBackend
@@ -278,6 +279,8 @@ class ProductArticleViewSet(viewsets.ModelViewSet):
 #         return color
 
 class FilterView(APIView):
+    permission_classes = [permissions.IsAppUser]
+
     def get(self, request, *args, **kwargs):
         cached_filters = cache.get('filters')
 
@@ -308,6 +311,7 @@ class FilterView(APIView):
 class NewProductVariantViewSet(viewsets.ModelViewSet):
     queryset = ProductVariant.objects.prefetch_related('size', 'color')
     serializer_class = ProductVariantSerializer
+    permission_classes = [permissions.IsAppUser]
 
     # @method_decorator(cache_page(60*60*18))
     # def dispatch(self, request, *args, **kwargs):
@@ -332,6 +336,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.prefetch_related('variants', 'section', 'category', 'subcategory', 'brand', 'article_no')
     serializer_class = NewProductSerializer
     parser_classes = (JSONParser, MultiPartParser, FormParser)
+    permission_classes = [permissions.IsAppUser]
 
     # # ref - https://stackoverflow.com/questions/51499175/caching-a-viewset-with-drf-typeerror-wrapped-view
     # @method_decorator(cache_page(60*60*18))
@@ -357,6 +362,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 class ProductByBarcodeAPIView(generics.RetrieveAPIView):
     # queryset = Product.objects.prefetch_related('variants', 'section', 'category', 'subcategory', 'brand', 'article_no')
     # serializer_class = NewProductSerializer
+    permission_classes = [permissions.IsAppUser]
 
     serializer_class = NewProductSerializer
 

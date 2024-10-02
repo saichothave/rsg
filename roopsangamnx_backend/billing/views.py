@@ -1,6 +1,6 @@
 from django.db.models import Sum
 from rest_framework import viewsets
-from authentication.permissions import IsShopOwner, IsBillingDesk
+from authentication.permissions import IsAppUser, IsShopOwner, IsBillingDesk
 from .invoice import generate_invoice_image
 from .models import Customer, BillingDesk, Billing, BillingItem
 from .serializers import BDDashBoardSerializer, BillingListSerializer, CustomerSerializer, BillingDeskSerializer, BillingSerializer, BillingItemSerializer
@@ -20,6 +20,7 @@ from billing import printer
 class CustomerViewSet(viewsets.ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class BillingViewSet(viewsets.ModelViewSet):
@@ -55,6 +56,7 @@ class BillingViewSet(viewsets.ModelViewSet):
 class BillingItemViewSet(viewsets.ModelViewSet):
     queryset = BillingItem.objects.all()
     serializer_class = BillingItemSerializer
+    permission_classes = [permissions.IsAuthenticated, IsBillingDesk]
 
 class BDDashBoardView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsBillingDesk]
@@ -79,6 +81,8 @@ class GetBills(APIView):
     
 
 class GetCustomerByPhoneNumber(APIView):
+    permission_classes = [IsBillingDesk, IsShopOwner] 
+
     def get(self, request, phone_number):
         try:
             customer = Customer.objects.filter(phone_number__icontains=phone_number)
@@ -104,6 +108,8 @@ class PrinterStatus(APIView):
         #         return Response({'error': 'Customer not found'}, status=status.HTTP_226_IM_USED)
             
 class PrintInvoiceByNumber(APIView):
+    permission_classes = [IsAppUser]
+    
     def get(self, request, invoice_number):
         try:
             invoice = Billing.objects.get(pk=invoice_number)
