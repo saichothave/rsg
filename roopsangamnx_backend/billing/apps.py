@@ -7,3 +7,4 @@ class BillingConfig(AppConfig):
     def ready(self):
         from billing import printer
         # printer.initialize_printer() Disabled Django printing functionality
+        from inventory import signals  # Import signals to ensure they are registered

@@ -270,3 +270,81 @@ class NewProductSerializer(serializers.ModelSerializer):
         
         return product
     
+    def update(self, instance, validated_data):
+        variants_data = validated_data.pop('variants')
+
+        # Update section
+        if 'section' in validated_data:
+            section_data = validated_data.pop('section')
+            instance.section = self.create_or_get(Section, section_data)
+
+        # Update category
+        if 'category' in validated_data:
+            category_data = validated_data.pop('category')
+            category_data['section'] = instance.section
+            instance.category = self.create_or_get(Category, category_data)
+
+        # Update subcategory
+        if 'subcategory' in validated_data:
+            subcategory_data = validated_data.pop('subcategory')
+            subcategory_data['category'] = instance.category
+            instance.subcategory = self.create_or_get(SubCategory, subcategory_data)
+
+        # Update brand
+        if 'brand' in validated_data:
+            brand_data = validated_data.pop('brand')
+            instance.brand = self.create_or_get(Brand, brand_data)
+
+        # Update article_no
+        if 'article_no' in validated_data:
+            article_no_data = validated_data.pop('article_no')
+            instance.article_no = self.create_or_get(ProductArticle, article_no_data)
+
+        # Update product details
+        instance.name = validated_data.get('name', instance.name)
+        instance.image = validated_data.get('image', instance.image)
+        instance.description = validated_data.get('description', instance.description)
+        instance.barcode = validated_data.get('barcode', instance.barcode)
+        instance.is_multi_pack = validated_data.get('is_multi_pack', instance.is_multi_pack)
+        instance.multi_pack_quantity = validated_data.get('multi_pack_quantity', instance.multi_pack_quantity)
+        instance.save()
+
+        # Handle variants update
+        existing_variants = {variant.id: variant for variant in instance.variants.all()}
+        for variant_data in variants_data:
+            if 'id' in variant_data:
+                variant_id = variant_data['id']
+                if variant_id in existing_variants:
+                    variant = existing_variants.pop(variant_id)
+
+                    size_data = variant_data.pop('size')
+                    size = self.create_or_get(ProductSize, size_data)
+
+                    color_data = variant_data.pop('color')
+                    color = self.create_or_get(ProductColor, color_data)
+
+                    # Update existing variant
+                    variant.size = size
+                    variant.color = color
+                    for key, value in variant_data.items():
+                        setattr(variant, key, value)
+                    variant.save()
+                else:
+                    # Handle case where variant ID doesn't match an existing one
+                    raise serializers.ValidationError(f"Variant ID {variant_id} not found.")
+            else:
+                # Create new variant
+                size_data = variant_data.pop('size')
+                size = self.create_or_get(ProductSize, size_data)
+
+                color_data = variant_data.pop('color')
+                color = self.create_or_get(ProductColor, color_data)
+
+                ProductVariant.objects.create(product=instance, size=size, color=color, **variant_data)
+
+        # Delete unused variants
+        for variant in existing_variants.values():
+            variant.delete()
+
+        return instance
+    
