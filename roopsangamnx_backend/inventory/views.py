@@ -16,6 +16,8 @@ from rest_framework import generics
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_cookie, vary_on_headers
+from django.core.cache import cache
+
 
 
 class SectionViewSet(viewsets.ModelViewSet):
@@ -47,17 +49,17 @@ class ProductArticleViewSet(viewsets.ModelViewSet):
     filterset_class = ProductArticleFilter
 
 
-class ProductVariantViewSet(viewsets.ModelViewSet):
-    queryset = ProductVariant.objects.prefetch_related('size', 'color')
-    serializer_class = ProductVariantSerializer
-    permission_classes = [IsAuthenticated]
-    filter_backends = [DjangoFilterBackend]
-
-    @method_decorator(cache_page(60*60*18))
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-
 #unused
+# class ProductVariantViewSet(viewsets.ModelViewSet):
+#     queryset = ProductVariant.objects.prefetch_related('size', 'color')
+#     serializer_class = ProductVariantSerializer
+#     permission_classes = [IsAuthenticated]
+#     filter_backends = [DjangoFilterBackend]
+
+#     # @method_decorator(cache_page(60*60*18))
+#     # def dispatch(self, request, *args, **kwargs):
+#     #     return super().dispatch(request, *args, **kwargs)
+
 # class ProductViewSet(viewsets.ModelViewSet):
 #     queryset = Product.objects.all()
 #     serializer_class = ProductSerializer
@@ -276,9 +278,13 @@ class ProductVariantViewSet(viewsets.ModelViewSet):
 #         return color
 
 class FilterView(APIView):
-    @method_decorator(cache_page(60 * 60 * 2))
-    @method_decorator(vary_on_cookie)
     def get(self, request, *args, **kwargs):
+        cached_filters = cache.get('filters')
+
+        if cached_filters:
+            # Return cached cached_filters if available
+            return Response(cached_filters)
+        
         sections = Section.objects.all()
         categories = Category.objects.all()
         subcategories = SubCategory.objects.all()
@@ -303,19 +309,50 @@ class NewProductVariantViewSet(viewsets.ModelViewSet):
     queryset = ProductVariant.objects.prefetch_related('size', 'color')
     serializer_class = ProductVariantSerializer
 
-    @method_decorator(cache_page(60*60*18))
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
+    # @method_decorator(cache_page(60*60*18))
+    # def dispatch(self, request, *args, **kwargs):
+    #     return super().dispatch(request, *args, **kwargs)
+
+    def list(self, request, *args, **kwargs):
+        # Attempt to get the variants list from cache
+        cached_products = cache.get('product_variant_list')
+
+        if cached_products:
+            # Return cached variants if available
+            return Response(cached_products)
+
+        # Fetch variants from the database if not cached
+        response = super().list(request, *args, **kwargs)
+
+        # Cache the variants for 18 Hrs
+        cache.set('product_variant_list', response.data, timeout=60*60*18)
+        return response
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.prefetch_related('variants', 'section', 'category', 'subcategory', 'brand', 'article_no')
     serializer_class = NewProductSerializer
     parser_classes = (JSONParser, MultiPartParser, FormParser)
 
-    # ref - https://stackoverflow.com/questions/51499175/caching-a-viewset-with-drf-typeerror-wrapped-view
-    @method_decorator(cache_page(60*60*18))
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
+    # # ref - https://stackoverflow.com/questions/51499175/caching-a-viewset-with-drf-typeerror-wrapped-view
+    # @method_decorator(cache_page(60*60*18))
+    # def dispatch(self, request, *args, **kwargs):
+    #     return super().dispatch(request, *args, **kwargs)
+
+    def list(self, request, *args, **kwargs):
+        # Attempt to get the product list from cache
+        cached_products = cache.get('product_list')
+        
+
+        if cached_products:
+            # Return cached products if available=
+            return Response(cached_products)
+
+        # Fetch products from the database if not cached
+        response = super().list(request, *args, **kwargs)
+
+        # Cache the products for 18 Hrs
+        cache.set('product_list', response.data, timeout=60*60*18)
+        return response
 
 class ProductByBarcodeAPIView(generics.RetrieveAPIView):
     # queryset = Product.objects.prefetch_related('variants', 'section', 'category', 'subcategory', 'brand', 'article_no')
@@ -323,16 +360,10 @@ class ProductByBarcodeAPIView(generics.RetrieveAPIView):
 
     serializer_class = NewProductSerializer
 
-    @method_decorator(cache_page(60*60*18))
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-
     def get_queryset(self):
         barcode = self.kwargs['barcode']
         return Product.objects.filter(barcode__endswith=barcode)
 
-    @method_decorator(cache_page(60 * 60 * 2))
-    @method_decorator(vary_on_cookie)
     def get(self, request, barcode, *args, **kwargs):
         products = self.get_queryset()
         if products.exists():
