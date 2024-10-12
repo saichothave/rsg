@@ -136,7 +136,7 @@ def generate_invoice_image(billing, request, printOnly=False, imageOnly=False):
     draw.text((10, y), f"Invoice #{billing.id}", fill='black', font=content_font)
     if shop is not None:
         print(content_font.size*18)
-        draw.text((300,y), align="right", text=f"SHP#-{shop.pk} {'BD#-{request.user.id}' if request.user.user_type == "billingdesk" else ''}", fill='black', font=content_font)
+        draw.text((300,y), align="right", text=f"SHP#-{shop.pk} {f'BD#-{request.user.id}' if request.user.user_type == "billingdesk" else ''}", fill='black', font=content_font)
     y += content_font.size + 8
 
 
