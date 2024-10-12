@@ -63,7 +63,7 @@ class BillingItemViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsBillingDesk]
 
 class BDDashBoardView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsBillingDesk]
+    permission_classes = [permissions.IsAuthenticated, IsAppUser]
 
     def get(self, request, *args, **kwargs):
         today = timezone.localtime(timezone.now()).date()
@@ -74,7 +74,7 @@ class BDDashBoardView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 class GetBills(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsBillingDesk]
+    permission_classes = [permissions.IsAuthenticated, IsAppUser]
 
     def get(self, request, *args, **kwargs):
         today = timezone.localtime(timezone.now()).date()
