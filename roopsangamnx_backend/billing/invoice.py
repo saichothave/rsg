@@ -9,7 +9,7 @@ from django.http import HttpResponse, JsonResponse
 from django.conf import settings
 import base64
 
-from authentication.models import BillingDesk
+from authentication.models import BillingDesk, ShopOwner
 from billing.printer import p
 from .whatsapp import sendInvoiceTemplateMsg
 from os import getenv
@@ -101,9 +101,14 @@ def generate_invoice_image(billing, request, printOnly=False, imageOnly=False):
 
 
     shop = None
-    if request.user.user_type == "billingdesk":
+
+    if(request.user.user_type == "shopowner"):
+        shop = ShopOwner.objects.filter(user_id=request.user.id)[0]
+    elif request.user.user_type == "billingdesk":
         shop = BillingDesk.objects.filter(user_id=request.user.id)[0].assigned_shop
-        
+
+
+    if shop is not None:  
         centerText(shop.shop_name,title_font)
         y += title_font.size + 10
         centerText("RoopsangamNX",content_font)
@@ -131,7 +136,7 @@ def generate_invoice_image(billing, request, printOnly=False, imageOnly=False):
     draw.text((10, y), f"Invoice #{billing.id}", fill='black', font=content_font)
     if shop is not None:
         print(content_font.size*18)
-        draw.text((300,y), align="right", text=f"SHP#-{shop.pk} BD#-{request.user.id}", fill='black', font=content_font)
+        draw.text((300,y), align="right", text=f"SHP#-{shop.pk} {'BD#-{request.user.id}' if request.user.user_type == "billingdesk" else ''}", fill='black', font=content_font)
     y += content_font.size + 8
 
 
