@@ -4,6 +4,7 @@ from .views import (
     BDDashBoardView,
     CustomerViewSet,
     BillingViewSet, BillingItemViewSet,
+    DailySalesChartView,
     GetBills,
     GetCustomerByPhoneNumber,
     PrinterStatus,
@@ -25,5 +26,7 @@ urlpatterns = [
     path('customer-by-phone/<str:phone_number>/', GetCustomerByPhoneNumber.as_view(), name='customer-by-phone'),
     path('printer-status/', PrinterStatus.as_view(), name='printer-status'),
     path('print-bill/<str:invoice_number>/', PrintInvoiceByNumber.as_view(), name='print-bill'),
-    path('get-bills/', GetBills.as_view(), name='get-bill')
+    path('get-bills/', GetBills.as_view(), name='get-bill'),
+    path('daily-sales/', DailySalesChartView.as_view(), name='daily-sales'),
+
 ]

@@ -18,6 +18,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_cookie, vary_on_headers
 from django.core.cache import cache
+from django.db.models import Sum
+
 
 
 
@@ -377,3 +379,20 @@ class ProductByBarcodeAPIView(generics.RetrieveAPIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({"detail": "No products found."}, status=status.HTTP_404_NOT_FOUND)
+        
+class ProductInventoryByCategory(APIView):
+    def get(self, request):
+        # Group by category and subcategory, and sum the inventory for all products
+        data = Product.objects.values('category__name', 'subcategory__name').annotate(
+            total_inventory=Sum('variants__inventory')  # Sum inventory for all variants
+        ).order_by('category__name', 'subcategory__name')  # Sort by category and subcategory
+
+        # Structure the data for the chart
+        labels = [f"{item['category__name']}/{item['subcategory__name']}" for item in data]
+        inventory = [item['total_inventory'] for item in data]
+
+        # Return the structured data
+        return Response({
+            'labels': labels,
+            'inventory': inventory
+        })

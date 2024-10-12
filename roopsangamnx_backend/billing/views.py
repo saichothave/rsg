@@ -13,6 +13,10 @@ from rest_framework import generics, permissions
 from django.utils import timezone
 from .printer import p
 from billing import printer
+from django.utils.timezone import now, timedelta, make_aware
+from datetime import datetime
+from django.db.models.functions import TruncDate
+
 
 
 
@@ -26,7 +30,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
 class BillingViewSet(viewsets.ModelViewSet):
     queryset = Billing.objects.all()
     serializer_class = BillingSerializer
-    permission_classes = [permissions.IsAuthenticated, IsBillingDesk]
+    # permission_classes = [permissions.IsAuthenticated, IsAppUser]
 
 
     def get_serializer_class(self):
@@ -45,7 +49,7 @@ class BillingViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=data)
         if serializer.is_valid():
             invoice = serializer.save()
-            response = generate_invoice_image(invoice, request)
+            response = generate_invoice_image(invoice, request, False, False)
             return response
             # return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
@@ -62,7 +66,7 @@ class BDDashBoardView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsBillingDesk]
 
     def get(self, request, *args, **kwargs):
-        today = timezone.now().date()
+        today = timezone.localtime(timezone.now()).date()
         today_bills = Billing.objects.filter(date__date=today, isPaid=True)
         total_by_payment_mode = today_bills.values('payment_mode').annotate(total_amount=Sum('total_amount'))
         
@@ -73,7 +77,7 @@ class GetBills(APIView):
     permission_classes = [permissions.IsAuthenticated, IsBillingDesk]
 
     def get(self, request, *args, **kwargs):
-        today = timezone.now().date()
+        today = timezone.localtime(timezone.now()).date()
         today_bills = Billing.objects.filter(date__date=today, isPaid=True)
         serializer = BillingListSerializer(today_bills, many=True)
         
@@ -81,7 +85,7 @@ class GetBills(APIView):
     
 
 class GetCustomerByPhoneNumber(APIView):
-    permission_classes = [IsBillingDesk, IsShopOwner] 
+    permission_classes = [IsAppUser] 
 
     def get(self, request, phone_number):
         try:
@@ -109,14 +113,43 @@ class PrinterStatus(APIView):
             
 class PrintInvoiceByNumber(APIView):
     permission_classes = [IsAppUser]
-    
+
     def get(self, request, invoice_number):
         try:
+            imageOnly = request.query_params.get('imageOnly', 'false').lower() == 'true'
+            print(imageOnly)
             invoice = Billing.objects.get(pk=invoice_number)
-            response = generate_invoice_image(invoice, request, True)
+            response = generate_invoice_image(invoice, request, True, imageOnly)
             return response
             # return Response(serializer.data, status=status.HTTP_200_OK)
         except Billing.DoesNotExist:
             return Response({'error': 'Invoice not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+class DailySalesChartView(APIView):
+    def get(self, request, *args, **kwargs):
+       # Get the date 100 days ago from the current time
+        days_ago = timezone.localtime(timezone.now()) - timedelta(days=100)
+
+        # Filter billings and group by day, summing the total_amount
+        billings = Billing.objects.filter(date__gte=days_ago)
+
+        daily_sales = (
+            billings
+            .annotate(day=TruncDate('date'))  # Truncate the datetime to just the date (day)
+            .values('day')                    # Group by the day
+            .annotate(total_sales=Sum('total_amount'))  # Sum the total_amount for each day
+            .order_by('day')  # Sort by day
+        )
+
+    
+
+        # Format the response for chart consumption
+        labels = [datetime.strptime(str(entry['day']), "%Y-%m-%d").strftime("%d-%b") for entry in daily_sales]
+        sales_data = [entry['total_sales'] for entry in daily_sales]
+
+        return Response({
+            "labels": labels,
+            "sales_data": sales_data
+        })
         
 
