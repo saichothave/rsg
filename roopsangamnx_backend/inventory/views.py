@@ -2,6 +2,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from inventory.filters import CategoryFilter, ProductArticleFilter, SubCategoryFilter, ProductFilter, SectionFilter
+from authentication import permissions
 from .models import Category, Product, SubCategory, Brand, ProductColor, ProductSize
 from .serializers import *
 from django_filters.rest_framework import DjangoFilterBackend
@@ -17,6 +18,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_cookie, vary_on_headers
 from django.core.cache import cache
+from django.db.models import Sum
+
 
 
 
@@ -278,6 +281,8 @@ class ProductArticleViewSet(viewsets.ModelViewSet):
 #         return color
 
 class FilterView(APIView):
+    permission_classes = [permissions.IsAppUser]
+
     def get(self, request, *args, **kwargs):
         cached_filters = cache.get('filters')
 
@@ -308,6 +313,7 @@ class FilterView(APIView):
 class NewProductVariantViewSet(viewsets.ModelViewSet):
     queryset = ProductVariant.objects.prefetch_related('size', 'color')
     serializer_class = ProductVariantSerializer
+    permission_classes = [permissions.IsAppUser]
 
     # @method_decorator(cache_page(60*60*18))
     # def dispatch(self, request, *args, **kwargs):
@@ -332,6 +338,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.prefetch_related('variants', 'section', 'category', 'subcategory', 'brand', 'article_no')
     serializer_class = NewProductSerializer
     parser_classes = (JSONParser, MultiPartParser, FormParser)
+    permission_classes = [permissions.IsAppUser]
 
     # # ref - https://stackoverflow.com/questions/51499175/caching-a-viewset-with-drf-typeerror-wrapped-view
     # @method_decorator(cache_page(60*60*18))
@@ -357,6 +364,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 class ProductByBarcodeAPIView(generics.RetrieveAPIView):
     # queryset = Product.objects.prefetch_related('variants', 'section', 'category', 'subcategory', 'brand', 'article_no')
     # serializer_class = NewProductSerializer
+    permission_classes = [permissions.IsAppUser]
 
     serializer_class = NewProductSerializer
 
@@ -371,3 +379,20 @@ class ProductByBarcodeAPIView(generics.RetrieveAPIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({"detail": "No products found."}, status=status.HTTP_404_NOT_FOUND)
+        
+class ProductInventoryByCategory(APIView):
+    def get(self, request):
+        # Group by category and subcategory, and sum the inventory for all products
+        data = Product.objects.values('category__name', 'subcategory__name').annotate(
+            total_inventory=Sum('variants__inventory')  # Sum inventory for all variants
+        ).order_by('category__name', 'subcategory__name')  # Sort by category and subcategory
+
+        # Structure the data for the chart
+        labels = [f"{item['category__name']}/{item['subcategory__name']}" for item in data]
+        inventory = [item['total_inventory'] for item in data]
+
+        # Return the structured data
+        return Response({
+            'labels': labels,
+            'inventory': inventory
+        })

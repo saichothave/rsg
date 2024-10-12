@@ -22,3 +22,8 @@ class IsShopOwner(permissions.BasePermission):
 class IsBillingDesk(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user and request.user.user_type == 'billingdesk'
+    
+class IsAppUser(permissions.BasePermission):
+    def has_permission(self, request, view):
+        print(request.user)
+        return request.user and request.user.user_type in ["shopowner", "billingdesk"]

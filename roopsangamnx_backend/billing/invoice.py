@@ -67,7 +67,7 @@ def printImage(image):
     p.cut("FULL")
 
     
-def generate_invoice_image(billing, request, printOnly=False):
+def generate_invoice_image(billing, request, printOnly=False, imageOnly=False):
     # Create an image with white background
     width, height = 600, 900  # Example dimensions
     DASH_NUM = 200
@@ -226,6 +226,9 @@ def generate_invoice_image(billing, request, printOnly=False):
 
         }
     }
+
+    if imageOnly:
+        return JsonResponse(response_data)
 
     # [print invoice]  - backend to print-server communication 
     try:
