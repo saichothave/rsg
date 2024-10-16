@@ -1,4 +1,5 @@
 import json
+import threading
 from PIL import Image, ImageDraw, ImageFont
 import io
 import os
@@ -11,8 +12,11 @@ import base64
 
 from authentication.models import BillingDesk, ShopOwner
 from billing.printer import p
+from billing.Telegram import send_document_async
 from .whatsapp import sendInvoiceTemplateMsg
 from os import getenv
+from asgiref.sync import sync_to_async
+import asyncio
 
 
 def add_newline_every_n_chars(text, n=15):
@@ -277,6 +281,21 @@ def generate_invoice_image(billing, request, printOnly=False, imageOnly=False):
     except Exception as e:
         response_data['metadata']['wpMsgSts'] = 500
         response_data['metadata']["wpMsgReason"] = repr(e)
+
+    #[Telegram] - send invoice to telegram
+    if getenv('SEND_INVOICE_TO_TELEGRAM') == "True" and not printOnly:
+        try:
+            def run_async_task():
+                asyncio.run(send_document_async(image_io, f"Invoice#{billing.id}.png",f"Invoice# {billing.id} \nAmount: Rs.{billing.total_amount} \nPayment: {billing.payment_mode}"))
+
+            # Run the async task in a separate thread
+            thread = threading.Thread(target=run_async_task)
+            thread.start()
+
+            # Do not use thread.join() here to let it run in the background
+            # thread.join() 
+        except Exception as e:
+            print(f"[Telegram Integration] - Error: {e}")
 
 
     response = JsonResponse(response_data)
