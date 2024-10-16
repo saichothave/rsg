@@ -6,13 +6,14 @@ from reportlab.platypus.flowables import KeepTogether
 from reportlab.graphics.shapes import Drawing, Rect
 from reportlab.lib.units import inch
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta, datetime
 from .models import Billing, BillingItem
 import io
 
 def generate_daily_billing_summary():
     # Get today's date range
     today = timezone.now().date()
+    # today = datetime.utcnow() + timedelta(hours=5, minutes=30)
     start_date = timezone.datetime.combine(today, timezone.datetime.min.time())
     end_date = timezone.datetime.combine(today, timezone.datetime.max.time())
 
@@ -109,7 +110,7 @@ def generate_daily_billing_summary():
         # Create a table for customer and billing details in two columns
         customer_billing_table = Table(
             [
-                [Paragraph(f"<b>Invoice ID:</b> {billing.id}"), ""],
+                [Paragraph(f"<b>Invoice ID:</b> {billing.id}"), Paragraph(f"<b>Time :</b> {(billing.date + timedelta(hours=5, minutes=30)).strftime('%I:%M %p')}")],
                 [Paragraph(f"<b>Customer:</b> {customer_name}"), Paragraph(f"<b>Total Amount:</b> Rs. {billing.total_amount}")],
                 [Paragraph(f"<b>Contact:</b> {billing.customer_details.phone_number}"), Paragraph(f"<b>Payment Mode:</b> {billing.payment_mode}")],
                 [Paragraph(f"<b>Desk :</b> {billing.billing_desk.location}"), Paragraph(f"<b>Status:</b> {'Paid' if billing.isPaid else 'Pending'}")]
