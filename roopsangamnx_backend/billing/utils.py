@@ -67,7 +67,7 @@ def generate_daily_billing_summary():
     title = Paragraph("Daily Billing Summary", title_style)
     elements.append(title)
     elements.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#0E5A8A'), spaceAfter=14))
-    elements.append(Paragraph(f"Date: {today.strftime('%B %d, %Y')}", normal_style))
+    elements.append(Paragraph(f"Date: {today.strftime('%B %d, %Y %I:%M %p')}", normal_style))
     elements.append(Paragraph(f"Total Revenue: Rs. {total_revenue}", bold_style))
     # elements.append(Paragraph(f"Total GST: Rs. {total_gst}", bold_style))
     elements.append(Paragraph(f"Total Paid Amount: Rs. {total_paid}", bold_style))
