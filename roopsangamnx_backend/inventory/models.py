@@ -80,6 +80,10 @@ class ProductSize(TimeStampedModel):
 class ProductArticle(TimeStampedModel):
     article = models.CharField(max_length=15)
 
+    def save(self, *args, **kwargs):
+        self.article = self.article.upper()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.article
 

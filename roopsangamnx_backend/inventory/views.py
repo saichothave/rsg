@@ -1,3 +1,8 @@
+from datetime import datetime
+from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.http.response import JsonResponse
+import openpyxl
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
@@ -396,3 +401,235 @@ class ProductInventoryByCategory(APIView):
             'labels': labels,
             'inventory': inventory
         })
+    
+class ProductVariantImportView(APIView):
+    permission_classes = [permissions.IsShopOwner]
+
+    def post(self, request):
+        if 'file' not in request.FILES:
+            return JsonResponse({'error': 'No file provided'}, status=400)
+
+        file = request.FILES['file']
+        failed_rows = []
+        output_file_path = "failed_imports.xlsx"
+
+        try:
+            workbook = openpyxl.load_workbook(file)
+            sheet = workbook.active
+
+            # Create a new workbook for failed rows
+            error_workbook = openpyxl.Workbook()
+            error_sheet = error_workbook.active
+            error_sheet.title = "Failed Rows"
+
+            # Copy header row from the original sheet and add a "Failure Reason" column
+            headers = [cell.value for cell in sheet[1]]
+            headers.append('Failure Reason')
+            error_sheet.append(headers)
+            success_count = 0
+            failuer_count = 0
+
+            product_added_count = 0
+            variant_added_count = 0
+
+            product_updated_count = 0
+            variant_updated_count = 0
+
+
+            # Iterate over rows in the Excel file
+            for row in sheet.iter_rows(min_row=2, values_only=True):  # Skipping the header row
+
+                # Check if the row is empty or contains only None values
+                if all(cell is None or (isinstance(cell, str) and not cell.strip()) for cell in row):
+                    continue  # Skip empty rows
+                product_created = False
+                with transaction.atomic():
+                    try:
+                        (barcode, product_name, brand_name, section_name, article_name, 
+                         category_name, subcategory_name, color_name, size_name, selling_price, mfd_date, isMultipack, multipack_qty,
+                         inventory, isVariant, *cols) = row
+
+                        # Retrieve or create the brand, section, category, and subcategory
+                        brand = Brand.objects.get_or_create(name=str(brand_name).title())[0] if brand_name else None
+                        section = Section.objects.get_or_create(name=str(section_name).title())[0] if section_name else None
+                        category = Category.objects.get_or_create(name=str(category_name).title(), section=section)[0] if category_name else None
+                        subcategory = SubCategory.objects.get_or_create(name=str(subcategory_name).title(), category=category)[0] if subcategory_name else None
+                        article = ProductArticle.objects.get_or_create(article=str(article_name).upper())[0] if article_name else None
+
+                        # Try to fetch the product, or create if it does not exist
+                        product, product_created = Product.objects.get_or_create(
+                            barcode=barcode,
+                            defaults= {
+                                'name' : product_name,
+                                'brand': brand,
+                                'section': section,
+                                'category': category,
+                                'subcategory': subcategory,
+                                'is_multi_pack': True if isMultipack == "Yes" else False,
+                                'multi_pack_quantity':  multipack_qty,
+                                'article_no': article,
+                            }
+                        )
+
+                        if(product_created):
+                            product_added_count += 1
+
+                        # Get or create the size and color
+                        size = ProductSize.objects.get_or_create(size=str(size_name).upper())[0] if size_name else None
+                        color = ProductColor.objects.get_or_create(color=str(color_name).title())[0] if color_name else None
+
+                        # Convert mfd_date from string to date if necessary
+                        if isinstance(mfd_date, str):
+                            mfd_date = datetime.strptime(mfd_date, '%Y-%m-%d').date()
+
+                        # Check for existing variant and update or create as needed
+                        variant, variant_created = ProductVariant.objects.update_or_create(
+                            product=product,
+                            size=size,
+                            color=color,
+                            mfd_date=mfd_date,
+                            defaults={
+                                'buying_price': selling_price * 0.80,
+                                'selling_price': selling_price,
+                                'applicable_gst': 0,
+                                'inventory': inventory * product.multi_pack_quantity if product.is_multi_pack else inventory,
+                            }
+                        )
+
+                        if variant_created:
+                            variant_added_count += 1
+                        else:
+                            variant_updated_count += 1
+
+                        success_count += 1
+
+                    except ValidationError as e:
+                        failure_reason = f"Validation error: {e}"
+                        transaction.set_rollback(True)
+                        failed_rows.append((*row, failure_reason))
+                        failuer_count += 1
+                        if product_created:
+                            product_added_count -= 1
+                    except Exception as e:
+                        failure_reason = f"Error: {e}"
+                        transaction.set_rollback(True)
+                        failed_rows.append((*row, failure_reason))
+                        failuer_count += 1
+                        if product_created:
+                            product_added_count -= 1
+
+            # Write failed rows to the error workbook
+            for failed_row in failed_rows:
+                error_sheet.append(failed_row)
+
+            # Save the error workbook
+            error_workbook.save(output_file_path)
+            
+            # Return a JSON response with failed rows
+            return Response({
+                'message': 'File processed with some errors.' if failed_rows else 'File processed successfully.',
+                'failed_rows': failed_rows,
+                'product_added_count': product_added_count,
+                'product_updated_count': product_updated_count,
+                'variant_added_count': variant_added_count,
+                'variant_updated_count': variant_updated_count,
+                'failuer_count': failuer_count,
+                'success_count': success_count,
+            }, status=status.HTTP_207_MULTI_STATUS if failed_rows else status.HTTP_200_OK)
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+        
+class InsertProductRow(APIView):
+    permission_classes = [permissions.IsShopOwner]
+
+    def post(self, request):
+        with transaction.atomic():
+            try:
+                barcode = request.data.get('barcode')
+                product_name = request.data.get('product_name')
+                brand_name = request.data.get('brand_name')
+                section_name = request.data.get('section_name')
+                article_name = request.data.get('article_name')
+                category_name = request.data.get('category_name')
+                subcategory_name = request.data.get('subcategory_name')
+                color_name = request.data.get('color_name')
+                size_name = request.data.get('size_name')
+                selling_price = request.data.get('selling_price')
+                mfd_date = request.data.get('mfd_date')
+                isMultipack = request.data.get('isMultipack')
+                multipack_qty = request.data.get('multipack_qty')
+                inventory = request.data.get('inventory')
+                isVariant = request.data.get('isVariant')
+
+                # Retrieve or create the brand, section, category, and subcategory
+                brand = Brand.objects.get_or_create(name=str(brand_name).title())[0] if brand_name else None
+                section = Section.objects.get_or_create(name=str(section_name).title())[0] if section_name else None
+                category = Category.objects.get_or_create(name=str(category_name).title(), section=section)[0] if category_name else None
+                subcategory = SubCategory.objects.get_or_create(name=str(subcategory_name).title(), category=category)[0] if subcategory_name else None
+                article = ProductArticle.objects.get_or_create(article=str(article_name).upper())[0] if article_name else None
+                msg = ""
+
+                # Try to fetch the product, or create if it does not exist
+                product, product_created = Product.objects.get_or_create(
+                    barcode=barcode,
+                    defaults= {
+                        'name' : product_name,
+                        'brand': brand,
+                        'section': section,
+                        'category': category,
+                        'subcategory': subcategory,
+                        'is_multi_pack': True if isMultipack == "Yes" else False,
+                        'multi_pack_quantity':  request.data['multipack_qty'],
+                        'article_no': article,
+                    }
+                )
+
+                if product_created:
+                    msg += "New Product Created & "
+                else:
+                    msg += "Fount existing Product & "
+
+                # Get or create the size and color
+                size = ProductSize.objects.get_or_create(size=str(size_name).upper())[0] if size_name else None
+                color = ProductColor.objects.get_or_create(color=str(color_name).title())[0] if color_name else None
+ 
+                print(selling_price)
+
+                # Check for existing variant and update or create as needed
+                variant, variant_created = ProductVariant.objects.update_or_create(
+                    product=product,
+                    size=size,
+                    color=color,
+                    mfd_date=mfd_date,
+                    defaults={
+                        'buying_price': selling_price * 0.80,
+                        'selling_price': selling_price,
+                        'applicable_gst': 0,
+                        'inventory': inventory * product.multi_pack_quantity if product.is_multi_pack else inventory,
+                    }
+                )
+
+                if variant_created:
+                    msg += "New Variant added"
+                else:
+                    msg += "Updated Variant"
+            
+                return Response({
+                        'message': msg
+                    }, status=status.HTTP_200_OK)
+
+            except ValidationError as e:
+                failure_reason = f"Validation error: {e}"
+                transaction.set_rollback(True)
+                return Response({
+                        'message': failure_reason
+                    }, status=status.HTTP_400_BAD_REQUEST)
+            
+            except Exception as e:
+                failure_reason = f"Error: {e}"
+                transaction.set_rollback(True)
+                return Response({
+                        'message': failure_reason
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
